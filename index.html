@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estudiar la UD4: microprocesadores, refrigeración y memoria</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500..800&display=swap" rel="stylesheet">
+<style>
+
+:root{
+  --mask:#0E3B2E;
+  --mask-2:#195240;
+  --silk:#F5F7F2;
+  --paper:#E8EDE9;
+  --ink:#14201A;
+  --ink-2:#44524A;
+  --copper:#B4601A;
+  --copper-soft:#F2DEC9;
+  --ok:#17733F;
+  --ok-soft:#DCEFE2;
+  --bad:#A92B22;
+  --bad-soft:#F8E0DC;
+  --line:#C3CCC6;
+  --radius:6px;
+  --head:"Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:19px;line-height:1.7}
+h1,h2,h3,h4{font-family:var(--head);line-height:1.15;margin:0}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--copper);outline-offset:2px}
+
+/* Cabecera */
+.top{position:sticky;top:0;z-index:20;background:var(--mask);color:var(--silk);border-bottom:4px solid var(--copper)}
+.top-in{max-width:1120px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand{font-family:var(--head);font-weight:700;font-size:1.15rem;letter-spacing:.01em}
+.brand small{display:block;font-family:var(--body);font-weight:400;font-size:.8rem;opacity:.8;letter-spacing:0}
+.tabs{display:flex;gap:6px}
+.tab{background:transparent;border:2px solid transparent;color:var(--silk);padding:8px 18px;border-radius:var(--radius);cursor:pointer;font-weight:700}
+.tab:hover{background:var(--mask-2)}
+.tab[aria-selected="true"]{background:var(--silk);color:var(--mask)}
+
+main{max-width:1120px;margin:0 auto;padding:28px 20px 120px}
+.view[hidden]{display:none}
+
+/* Repaso */
+.rev{display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px;align-items:start}
+.toc{position:sticky;top:96px;max-height:calc(100vh - 120px);overflow:auto;font-size:.95rem;padding-right:6px}
+.toc ol{list-style:none;margin:0;padding:0}
+.toc a{display:block;padding:5px 10px;border-left:3px solid var(--line);color:var(--ink-2);text-decoration:none}
+.toc a:hover{color:var(--ink);border-left-color:var(--copper)}
+.toc a.on{border-left-color:var(--copper);color:var(--ink);font-weight:700;background:var(--silk)}
+.toc .sub a{padding-left:22px;font-size:.88rem}
+.toc-m{display:none}
+.doc{max-width:760px}
+.doc h1{font-size:2.3rem;font-weight:800;margin-bottom:8px}
+.lead{color:var(--ink-2);margin:0 0 22px}
+.doc section{margin-top:44px}
+.doc h2{font-size:1.75rem;font-weight:800;padding-top:10px;border-top:4px solid var(--mask);margin-bottom:14px;scroll-margin-top:96px}
+.doc h3{font-size:1.2rem;font-weight:700;margin:26px 0 8px;scroll-margin-top:96px}
+.doc p{margin:0 0 12px}
+.doc ul{margin:0 0 12px;padding-left:22px}
+.doc li{margin-bottom:6px}
+.tw{overflow-x:auto;margin:10px 0 16px;border:1.5px solid var(--ink);border-radius:var(--radius);background:var(--silk)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--mask);color:var(--silk);font-family:var(--head);font-weight:600;font-size:.95rem;border-bottom:0}
+tr:last-child td{border-bottom:0}
+td:first-child{font-weight:700;white-space:nowrap}
+td.wrap{white-space:normal}
+.clave{background:var(--copper-soft);border-left:6px solid var(--copper);padding:12px 16px;border-radius:0 var(--radius) var(--radius) 0;margin:14px 0 16px}
+.clave strong:first-child{font-family:var(--head)}
+.clave p:last-child{margin-bottom:0}
+.esencial{background:var(--silk);border:1.5px solid var(--ink);border-radius:var(--radius);padding:16px 20px;margin-bottom:8px}
+.esencial h2{border:0;padding:0;font-size:1.35rem;margin-bottom:8px}
+.esencial ul{margin:0}
+.flash{animation:flash 2.8s ease-out}
+@keyframes flash{0%,35%{background:var(--copper-soft);box-shadow:0 0 0 8px var(--copper-soft)}100%{background:transparent;box-shadow:0 0 0 8px transparent}}
+.slots{display:flex;gap:14px;align-items:flex-end;margin:12px 0 4px;flex-wrap:wrap}
+.slot{width:46px;height:120px;border:2px solid var(--ink);border-radius:4px;background:#fff;display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;font-weight:700;font-size:.85rem}
+.slot.a{background:#BFD3EC}
+.slot.b{background:#F1CFB3}
+.slot.gap{margin-left:26px}
+.legend{font-size:.9rem;color:var(--ink-2)}
+.check{counter-reset:c;list-style:none;padding:0}
+.check li{counter-increment:c;display:grid;grid-template-columns:34px 1fr;gap:6px}
+.check li::before{content:counter(c);font-family:var(--head);font-weight:800;color:var(--silk);background:var(--mask);border-radius:50%;width:28px;height:28px;display:grid;place-items:center;font-size:.9rem;margin-top:2px}
+.vocab{columns:2;column-gap:32px;list-style:none;padding:0!important}
+.vocab li{break-inside:avoid}
+@media (max-width:640px){.vocab{columns:1}}
+.check small{display:block;color:var(--ink-2)}
+
+/* Test */
+.card{max-width:760px;margin:0 auto}
+.start h1{font-size:2.4rem;font-weight:800;margin-bottom:10px}
+.pins{display:flex;gap:5px;margin-bottom:14px}
+.pin{flex:1;height:14px;max-width:34px;background:var(--line);border-radius:2px 2px 0 0;border:1.5px solid var(--ink);border-bottom:0}
+.pin.cur{background:var(--copper)}
+.pin.ok{background:var(--ok)}
+.pin.no{background:var(--bad)}
+.pins.big{margin:26px 0 8px}
+.pins.big .pin{height:34px}
+.tema{display:inline-block;background:var(--silk);border:1.5px solid var(--ink);border-radius:999px;padding:2px 12px;font-size:.88rem;margin-bottom:10px}
+.count{color:var(--ink-2);margin:0 0 4px;font-size:.95rem}
+.q{font-size:1.55rem;font-weight:700;margin-bottom:18px}
+.opts{display:grid;gap:10px}
+.opt{display:grid;grid-template-columns:34px 1fr;gap:10px;text-align:left;background:var(--silk);border:2px solid var(--ink);border-radius:var(--radius);padding:12px 14px;cursor:pointer;line-height:1.4}
+.opt:hover:not(:disabled){background:#fff;border-color:var(--copper)}
+.opt .l{font-family:var(--head);font-weight:800;background:var(--ink);color:var(--silk);border-radius:50%;width:28px;height:28px;display:grid;place-items:center;font-size:.9rem}
+.opt:disabled{cursor:default}
+.opt.ok{background:var(--ok-soft);border-color:var(--ok)}
+.opt.ok .l{background:var(--ok)}
+.opt.no{background:var(--bad-soft);border-color:var(--bad)}
+.opt.no .l{background:var(--bad)}
+.opt.dim{opacity:.55}
+.fb{margin-top:20px;border-radius:var(--radius);padding:18px 20px;border:2px solid var(--ink);background:var(--silk)}
+.fb.good{border-color:var(--ok)}
+.fb.bad{border-color:var(--bad)}
+.fb h3{font-size:1.3rem;margin-bottom:8px}
+.fb.good h3{color:var(--ok)}
+.fb.bad h3{color:var(--bad)}
+.fb p{margin:0 0 10px}
+.easy{background:#fff;border-left:6px solid var(--copper);padding:12px 16px;border-radius:0 var(--radius) var(--radius) 0;margin:12px 0}
+.easy h4{font-size:1.05rem;margin-bottom:4px}
+.easy p{margin:0}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{background:var(--mask);color:var(--silk);border:2px solid var(--mask);border-radius:var(--radius);padding:11px 20px;font-weight:700;cursor:pointer}
+.btn:hover{background:var(--mask-2)}
+.btn.ghost{background:transparent;color:var(--mask)}
+.btn.ghost:hover{background:var(--silk)}
+.btn.copper{background:var(--copper);border-color:var(--copper)}
+.btn.small{padding:6px 12px;font-size:.9rem}
+
+/* Resultados */
+.score{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:6px 0 4px}
+.score b{font-family:var(--head);font-size:4.2rem;font-weight:800;line-height:1}
+.score span{font-family:var(--head);font-size:1.6rem;color:var(--ink-2)}
+.res h2{font-size:1.45rem;font-weight:800;margin:34px 0 12px}
+.bars{display:grid;gap:10px}
+.bar{display:grid;grid-template-columns:minmax(150px,230px) 1fr 54px;gap:12px;align-items:center;font-size:.95rem}
+.track{height:16px;background:#fff;border:1.5px solid var(--ink);border-radius:3px;overflow:hidden;display:flex}
+.track i{display:block;height:100%;background:var(--ok)}
+.track i.f{background:var(--bad)}
+.bar em{font-style:normal;font-weight:700;text-align:right}
+.mejora{border:2px solid var(--ink);background:var(--silk);border-radius:var(--radius);padding:14px 18px;margin-bottom:14px}
+.mejora h3{font-size:1.15rem;margin-bottom:2px}
+.mejora .c{color:var(--ink-2);margin:0 0 8px;font-size:.95rem}
+.mejora ul{list-style:none;padding:0;margin:0}
+.mejora li{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:7px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.todo-ok{background:var(--ok-soft);border:2px solid var(--ok);border-radius:var(--radius);padding:14px 18px}
+details{background:var(--silk);border:1.5px solid var(--ink);border-radius:var(--radius);margin-bottom:10px;padding:0 16px}
+summary{cursor:pointer;padding:12px 0;font-weight:700}
+details[open] summary{border-bottom:1px solid var(--line);margin-bottom:12px}
+details .fbi{padding-bottom:14px}
+details .fbi p{margin:0 0 8px}
+
+/* Barra de vuelta */
+#back{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:30;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+#back[hidden]{display:none}
+
+@media (max-width:860px){
+  .rev{grid-template-columns:1fr;gap:10px}
+  .toc{display:none}
+  .toc-m{display:block;margin-bottom:6px}
+  .toc-m summary{font-family:var(--head)}
+  .toc-m a{display:block;padding:6px 0;color:var(--ink);text-decoration:none}
+  body{font-size:18px}
+  .doc h1,.start h1{font-size:1.9rem}
+  .q{font-size:1.3rem}
+  .bar{grid-template-columns:1fr 54px}
+  .bar .track{grid-column:1 / -1;order:3}
+  .score b{font-size:3.4rem}
+}
+
+/* ---- Mis tests y progreso ---- */
+.card.wide{max-width:860px}
+.tema.rep{background:var(--copper-soft);border-color:var(--copper)}
+.notice{background:var(--bad-soft);border:1.5px solid var(--bad);border-radius:var(--radius);padding:8px 12px;font-size:.95rem;margin:10px 0}
+.hh{font-size:2.3rem;font-weight:800;margin-bottom:10px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}
+.stat{background:var(--silk);border:1.5px solid var(--ink);border-radius:var(--radius);padding:12px 14px}
+.stat b{display:block;font-family:var(--head);font-size:2rem;font-weight:800;line-height:1.1}
+.stat span{font-size:.9rem;color:var(--ink-2)}
+.evo{display:flex;align-items:flex-end;gap:8px;min-height:150px;margin:8px 0 4px;padding:0 4px}
+.col{flex:1;max-width:48px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+.col i{display:block;width:100%;background:var(--mask);border-radius:3px 3px 0 0}
+.col i.hi{background:var(--ok)}
+.col i.mid{background:var(--copper)}
+.col i.lo{background:var(--bad)}
+.col .v{font-weight:700;font-size:.9rem}
+.col .l{font-size:.8rem;color:var(--ink-2);border-top:2px solid var(--ink);width:100%;text-align:center;padding-top:2px}
+.trend{color:var(--ink-2);margin:6px 0 0}
+.bar.weak span{font-weight:700}
+.bar.weak .track{border-color:var(--copper);border-width:3px}
+details.tcard summary{display:flex;gap:16px;align-items:baseline;flex-wrap:wrap}
+.tn{font-family:var(--head);font-weight:800}
+.ts{font-weight:700;color:var(--mask)}
+.td{color:var(--ink-2);font-size:.9rem;margin-left:auto}
+.tt{list-style:none;padding:0;margin:10px 0;display:grid;grid-template-columns:1fr 1fr;gap:2px 24px;font-size:.92rem}
+.tt li{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding:3px 0}
+h3.sub{font-size:1.05rem;margin:14px 0 8px}
+details details{background:#fff}
+.reset{margin-top:36px;padding-top:16px;border-top:1.5px solid var(--line)}
+@media (max-width:860px){.stats{grid-template-columns:repeat(2,1fr)}.tt{grid-template-columns:1fr}.hh{font-size:1.9rem}.td{margin-left:0}}
+
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">UD4 · Microprocesadores, refrigeración y memoria<small>Montaje y Mantenimiento de Equipos, 1.º SMR</small></div>
+    <div class="tabs" role="tablist" aria-label="Apartados">
+      <button class="tab" role="tab" id="tab-repasar" aria-selected="true" aria-controls="view-repasar">Repasar</button>
+      <button class="tab" role="tab" id="tab-test" aria-selected="false" aria-controls="view-test">Test</button>
+      <button class="tab" role="tab" id="tab-hist" aria-selected="false" aria-controls="view-hist">Mis tests</button>
+    </div>
+  </div>
+</header>
+
+<main>
+<div class="view" id="view-repasar" role="tabpanel" aria-labelledby="tab-repasar">
+<div class="rev">
+<nav class="toc" aria-label="Índice del temario">
+  <ol id="toc">
+    <li><a href="#sec-1" data-t="sec-1">1. El micro por dentro</a>
+      <ol class="sub"><li><a href="#sec-1-2" data-t="sec-1-2">Sus partes</a></li><li><a href="#sec-1-3" data-t="sec-1-3">Núcleos e hilos</a></li><li><a href="#sec-1-4" data-t="sec-1-4">Frecuencia y caché</a></li></ol></li>
+    <li><a href="#sec-2" data-t="sec-2">2. Nombres y sufijos</a>
+      <ol class="sub"><li><a href="#sec-2-3" data-t="sec-2-3">Sufijos</a></li></ol></li>
+    <li><a href="#sec-3" data-t="sec-3">3. Zócalos y potencia</a>
+      <ol class="sub"><li><a href="#sec-3-1" data-t="sec-3-1">El zócalo</a></li><li><a href="#sec-3-2" data-t="sec-3-2">Chipset y BIOS</a></li><li><a href="#sec-3-3" data-t="sec-3-3">TDP y tensiones</a></li></ol></li>
+    <li><a href="#sec-4" data-t="sec-4">4. Refrigeración</a>
+      <ol class="sub"><li><a href="#sec-4-1" data-t="sec-4-1">Por qué refrigerar</a></li><li><a href="#sec-4-2" data-t="sec-4-2">Partes del disipador</a></li><li><a href="#sec-4-3" data-t="sec-4-3">Ventiladores</a></li><li><a href="#sec-4-4" data-t="sec-4-4">Pasta térmica</a></li><li><a href="#sec-4-5" data-t="sec-4-5">Tipos y elección</a></li><li><a href="#sec-4-6" data-t="sec-4-6">Flujo de aire</a></li></ol></li>
+    <li><a href="#sec-5" data-t="sec-5">5. La memoria RAM</a>
+      <ol class="sub"><li><a href="#sec-5-2" data-t="sec-5-2">DDR4 y DDR5</a></li><li><a href="#sec-5-3" data-t="sec-5-3">Formato y latencia</a></li><li><a href="#sec-5-4" data-t="sec-5-4">La etiqueta</a></li></ol></li>
+    <li><a href="#sec-6" data-t="sec-6">6. Memoria en la placa</a>
+      <ol class="sub"><li><a href="#sec-6-1" data-t="sec-6-1">Ranuras y canales</a></li><li><a href="#sec-6-2" data-t="sec-6-2">Quién decide</a></li></ol></li>
+    <li><a href="#sec-7" data-t="sec-7">7. Compatibilidad</a></li>
+    <li><a href="#sec-8" data-t="sec-8">8. Inglés</a></li>
+  </ol>
+</nav>
+
+<article class="doc">
+  <details class="toc-m"><summary>Índice</summary>
+    <a href="#sec-1" data-t="sec-1">1. El micro por dentro</a><a href="#sec-2" data-t="sec-2">2. Nombres y sufijos</a><a href="#sec-3" data-t="sec-3">3. Zócalos y potencia</a><a href="#sec-4" data-t="sec-4">4. Refrigeración</a><a href="#sec-5" data-t="sec-5">5. La memoria RAM</a><a href="#sec-6" data-t="sec-6">6. Memoria en la placa</a><a href="#sec-7" data-t="sec-7">7. Compatibilidad</a><a href="#sec-8" data-t="sec-8">8. Inglés</a>
+  </details>
+
+  <h1>Unidad 4: microprocesadores, refrigeración y memoria</h1>
+  <p class="lead">Lo importante de tus apuntes en pocas frases. Dos bloques: las características de los micros y su relación con la memoria (apartados 1, 2, 3, 5 y 6) y la función de los disipadores y ventiladores (apartado 4).</p>
+
+  <section id="sec-1">
+    <h2>1. El microprocesador por dentro</h2>
+    <p>La CPU lee las instrucciones de los programas, hace los cálculos y da órdenes al resto del equipo.</p>
+
+    <h3 id="sec-1-2">1.2 Sus partes</h3>
+    <ul>
+      <li><strong>Unidad de control (UC):</strong> lee e interpreta cada instrucción y da las órdenes. Es el jefe.</li>
+      <li><strong>ALU:</strong> hace los cálculos y las comparaciones.</li>
+      <li><strong>Registros:</strong> memorias diminutas y rapidísimas con los datos del momento.</li>
+      <li><strong>Caché:</strong> guarda lo que se va a usar pronto, para no esperar a la RAM.</li>
+      <li><strong>Controlador de memoria:</strong> comunica el procesador con la RAM y decide qué tipo admite.</li>
+    </ul>
+
+    <h3 id="sec-1-3">1.3 Núcleos e hilos</h3>
+    <p>Un <strong>núcleo</strong> es un procesador completo dentro del chip (un cocinero). Un <strong>hilo</strong> es una tarea que lleva un núcleo; muchos llevan dos a la vez (las dos manos del cocinero). Windows llama <strong>procesadores lógicos</strong> a los hilos: 6 núcleos y 12 hilos = 12. Los Intel actuales mezclan núcleos <strong>P</strong> (rendimiento) y <strong>E</strong> (eficiencia, gastan menos).</p>
+
+    <h3 id="sec-1-4">1.4 Frecuencia y caché</h3>
+    <p>La <strong>frecuencia</strong> (GHz) son los ciclos por segundo: la <strong>base</strong> la mantiene siempre y la <strong>turbo</strong> es la máxima, durante un rato. No se comparan frecuencias de generaciones distintas. La <strong>caché</strong> tiene tres niveles: <strong>L1</strong> (la más pequeña y rápida, una por núcleo), <strong>L2</strong> (mayor y algo más lenta) y <strong>L3</strong> (la mayor y más lenta, compartida por todos los núcleos).</p>
+    <div class="clave"><p><strong>Recuerda.</strong> 8 núcleos no van siempre el doble de rápido que 4: solo si el programa reparte el trabajo entre todos.</p></div>
+  </section>
+
+  <section id="sec-2">
+    <h2>2. Nombres y sufijos</h2>
+    <p>En sobremesa con Windows hay dos fabricantes: <strong>Intel</strong> y <strong>AMD</strong>. En <em>Ryzen 5 7600X</em> o <em>Core Ultra 7 265K</em>: el 5 o el 7 es la <strong>gama</strong> (3, 5, 7 o 9, de básica a muy alta), las cifras siguientes marcan la <strong>generación</strong> y la letra final es el <strong>sufijo</strong>. Los datos oficiales están en <strong>Intel ARK</strong> y en la web de AMD, no en la tienda.</p>
+
+    <h3 id="sec-2-3">2.3 Sufijos más frecuentes</h3>
+    <div class="tw"><table>
+      <tr><th>Sufijo</th><th>Significado</th></tr>
+      <tr><td>K</td><td class="wrap">Intel. Desbloqueado: admite overclocking</td></tr>
+      <tr><td>F</td><td class="wrap">Intel (y algún AMD). Sin gráficos integrados: necesita tarjeta gráfica</td></tr>
+      <tr><td>KF</td><td class="wrap">Intel. Desbloqueado y sin gráficos integrados</td></tr>
+      <tr><td>X</td><td class="wrap">AMD. Frecuencias más altas</td></tr>
+      <tr><td>G</td><td class="wrap">AMD. Gráficos integrados potentes (en AM4, solo los G los traen)</td></tr>
+      <tr><td>X3D</td><td class="wrap">AMD. Caché L3 extra apilada encima del chip: muy bueno para juegos</td></tr>
+      <tr><td>H, HX, U</td><td class="wrap">Procesadores de portátil</td></tr>
+    </table></div>
+    <div class="clave"><p><strong>Recuerda.</strong> Sin tarjeta gráfica necesitas un procesador con gráficos integrados, o no habrá imagen. Algunos modelos recientes traen también una <strong>NPU</strong> para tareas de inteligencia artificial.</p></div>
+  </section>
+
+  <section id="sec-3">
+    <h2>3. Zócalos, chipset y potencia</h2>
+    <h3 id="sec-3-1">3.1 El zócalo</h3>
+    <p>Es el conector de la placa donde va el procesador y cada uno admite una sola familia. En <strong>LGA</strong> los contactos están en la placa; en <strong>PGA</strong> (AM4) los pines están en el procesador.</p>
+    <div class="tw"><table>
+      <tr><th>Zócalo</th><th>Procesadores</th><th>Memoria</th></tr>
+      <tr><td>LGA1700</td><td class="wrap">Intel Core 12.ª a 14.ª generación</td><td class="wrap">DDR4 o DDR5, según la placa</td></tr>
+      <tr><td>LGA1851</td><td class="wrap">Intel Core Ultra 200S</td><td class="wrap">DDR5</td></tr>
+      <tr><td>AM4</td><td class="wrap">AMD Ryzen 5000 y anteriores</td><td class="wrap">DDR4</td></tr>
+      <tr><td>AM5</td><td class="wrap">AMD Ryzen 7000, 8000 y 9000</td><td class="wrap">DDR5</td></tr>
+    </table></div>
+    <div class="clave"><p><strong>Recuerda.</strong> Mismo fabricante no significa compatible: un Intel de 14.ª generación no entra en LGA1851, ni un Ryzen 5000 en AM5.</p></div>
+
+    <h3 id="sec-3-2">3.2 El chipset y la BIOS</h3>
+    <p>El <strong>chipset</strong> conecta el procesador con USB, SATA, PCIe… y define la gama de la placa: en Intel <strong>H</strong> (básica), <strong>B</strong> (media) y <strong>Z</strong> (alta, permite overclocking); en AMD <strong>A</strong>, <strong>B</strong> y <strong>X</strong>. Que el zócalo coincida no basta: el procesador debe estar en la <strong>lista de procesadores compatibles</strong> de la placa (CPU support list) y, a veces, hay que actualizar la BIOS.</p>
+
+    <h3 id="sec-3-3">3.3 Potencia y tensiones</h3>
+    <p>El <strong>TDP</strong> es el calor, en <strong>vatios</strong>, que la refrigeración tiene que evacuar: unos 65 W en oficina, 125 W o más en gama alta. La tensión del núcleo (<strong>Vcore</strong>) es de solo 1–1,4 V: la placa la saca de los 12 V del conector <strong>EPS</strong> de la fuente con el <strong>VRM</strong>, los componentes que rodean el zócalo.</p>
+  </section>
+
+  <section id="sec-4">
+    <h2>4. Refrigeración: disipadores y ventiladores</h2>
+    <h3 id="sec-4-1">4.1 Por qué refrigerar</h3>
+    <p>Toda la energía que consume el procesador acaba en calor. Cada modelo tiene una temperatura máxima (<strong>Tj máx.</strong>, 95–105 °C). Al acercarse, <strong>baja la frecuencia</strong> (<strong>throttling</strong>) y el equipo va más lento; si aun así sigue subiendo, <strong>se apaga</strong>.</p>
+
+    <h3 id="sec-4-2">4.2 Partes del disipador</h3>
+    <p>La <strong>base</strong> toca el procesador y recoge el calor, los <strong>heatpipes</strong> lo llevan a las <strong>aletas</strong>, que lo sueltan al aire, y el <strong>ventilador</strong> mueve ese aire. El <strong>anclaje</strong> lo sujeta a la placa y depende del zócalo. <strong>Camino del calor:</strong> procesador → base → heatpipes → aletas → aire. Un disipador <strong>pasivo</strong> no lleva ventilador: es silencioso, pero solo vale para muy poca potencia.</p>
+
+    <h3 id="sec-4-3">4.3 Los ventiladores</h3>
+    <ul>
+      <li>Tamaños de 92, 120 y 140 mm: a igual caudal, uno más grande gira más despacio y hace menos ruido. Se miden en <strong>rpm</strong> (velocidad) y <strong>dB</strong> (ruido).</li>
+      <li><strong>3 pines:</strong> la placa regula la velocidad cambiando la tensión. <strong>4 pines (PWM):</strong> usa además una señal de control y regula con más precisión.</li>
+      <li>El del procesador va en <strong>CPU_FAN</strong> y los del chasis en <strong>SYS_FAN</strong>. Con CPU_FAN vacío, muchas placas no arrancan o dan error.</li>
+    </ul>
+
+    <h3 id="sec-4-4">4.4 La pasta térmica</h3>
+    <p>Entre el procesador y el disipador quedan huecos microscópicos con aire, que conduce muy mal el calor. La pasta <strong>rellena esos huecos</strong>; no pega ni enfría por sí sola. Basta un guisante, y al apretar se reparte. Si desmontas el disipador, limpia y pon pasta nueva.</p>
+
+    <h3 id="sec-4-5">4.5 Tipos y elección</h3>
+    <p>Hay disipador <strong>de serie</strong> (poca potencia), <strong>de perfil bajo</strong> (chasis con poca altura), <strong>torre de aire</strong> (potentes, con ventilador de 120 o 140 mm) y <strong>líquida AIO</strong> (muy potentes, con radiador de 240, 280 o 360 mm).</p>
+    <div class="clave"><p><strong>Recuerda.</strong> Para elegir se miran el <strong>TDP</strong> y el <strong>espacio del chasis</strong> (altura libre o radiador), y que encaje en el zócalo.</p></div>
+
+    <h3 id="sec-4-6">4.6 El flujo de aire</h3>
+    <p>El aire frío <strong>entra por delante y por abajo</strong> y el caliente <strong>sale por detrás y por arriba</strong>. Con <strong>presión positiva</strong> entra más aire del que sale: el sobrante escapa por las rendijas y, con filtros, entra menos polvo. Con <strong>presión negativa</strong> sale más del que entra: el chasis aspira aire y polvo por cualquier rendija.</p>
+  </section>
+
+  <section id="sec-5">
+    <h2>5. La memoria RAM</h2>
+    <h3 id="sec-5-1">5.1 Para qué sirve</h3>
+    <p>Guarda los programas y datos que se están usando. Es mucho más rápida que el disco, pero es <strong>volátil</strong>: al apagar, se borra. Está entre la caché y el disco.</p>
+
+    <h3 id="sec-5-2">5.2 DDR4 y DDR5</h3>
+    <ul>
+      <li><strong>DDR4:</strong> 1,2 V, de 2133 a 3200 MT/s. Va en AM4 y parte de las placas LGA1700.</li>
+      <li><strong>DDR5:</strong> 1,1 V, de 4800 a 6400 MT/s o más. Va en AM5, LGA1851 y parte de las LGA1700.</li>
+    </ul>
+    <div class="clave"><p><strong>Recuerda.</strong> No son intercambiables: la muesca está en otro sitio y el módulo no entra en la ranura del otro tipo. Una placa admite uno u otro, nunca los dos.</p></div>
+
+    <h3 id="sec-5-3">5.3 Formato, velocidad y latencia</h3>
+    <ul>
+      <li><strong>DIMM</strong> (largos, sobremesa) y <strong>SO-DIMM</strong> (cortos, portátiles; a veces la memoria va soldada).</li>
+      <li>La velocidad va en <strong>MT/s</strong>; las tiendas dicen «MHz», pero el número es el mismo.</li>
+      <li><strong>Latencia CL:</strong> a igual velocidad, cuanto menor mejor. En nanosegundos: <strong>CL × 2000 / velocidad</strong>. DDR4-3200 CL16 y DDR5-6000 CL30 tardan lo mismo: 10 ns.</li>
+      <li><strong>Kits:</strong> parejas de módulos iguales (2 × 16 GB = 32 GB) para el doble canal.</li>
+    </ul>
+
+    <h3 id="sec-5-4">5.4 La etiqueta de un módulo</h3>
+    <p>Ejemplo: <strong>16GB 1Rx8 PC5-4800B-UA0</strong>. <strong>16GB</strong> = capacidad. <strong>PC5</strong> = DDR5 (PC4 = DDR4, PC3 = DDR3). <strong>4800</strong> = velocidad en MT/s. <strong>U</strong> = sobremesa, DIMM (S = portátil, SO-DIMM). Lo demás no lo necesitamos. En etiquetas antiguas el número tras PC4 son los MB/s: dividido entre 8 da la velocidad (<strong>PC4-25600 = DDR4-3200</strong>).</p>
+  </section>
+
+  <section id="sec-6">
+    <h2>6. La memoria en la placa base</h2>
+    <h3 id="sec-6-1">6.1 Ranuras y canales</h3>
+    <p>Las placas de sobremesa tienen 2 o 4 ranuras. El controlador de memoria tiene <strong>dos canales, A y B</strong>, como dos carreteras hacia la memoria.</p>
+    <div class="slots" role="img" aria-label="Cuatro ranuras: A1 vacía, A2 llena, B1 vacía y B2 llena">
+      <div class="slot">A1</div><div class="slot a">A2</div><div class="slot gap">B1</div><div class="slot b">B2</div>
+    </div>
+    <p class="legend">Canal A: A1 y A2. Canal B: B1 y B2. Rellenas: dos módulos en A2 y B2.</p>
+    <ul>
+      <li><strong>Dos módulos iguales, uno en cada canal</strong> = doble canal: el procesador lee el doble de datos a la vez. Casi siempre van en <strong>A2 y B2</strong>, pero manda el manual. Por eso 2 × 8 GB suele ir mejor que 1 × 16 GB.</li>
+      <li>Cuatro módulos iguales también dan doble canal, aunque a veces baja la velocidad.</li>
+      <li>Tres módulos, o módulos distintos: mala idea. Si se mezclan velocidades, todos van a la del más lento.</li>
+    </ul>
+
+    <h3 id="sec-6-2">6.2 Quién decide la memoria</h3>
+    <ul>
+      <li>El <strong>procesador</strong> decide el tipo (DDR4 o DDR5) y su velocidad oficial, porque lleva el controlador de memoria.</li>
+      <li>La <strong>placa</strong> decide las ranuras, la capacidad máxima y las velocidades que admite.</li>
+      <li>El perfil <strong>XMP</strong> (Intel) o <strong>EXPO</strong> (AMD), en la UEFI, pone la memoria a la velocidad que anuncia la caja.</li>
+    </ul>
+    <p>En la ficha de una placa (<em>4 x DIMM, Max. 128GB, DDR5 6400+(OC)/…/4800</em>): «Max. 128GB» es el total de <strong>todas las ranuras juntas</strong>; las velocidades <strong>sin (OC)</strong> funcionan siempre y las <strong>(OC)</strong> necesitan XMP o EXPO sin estar garantizadas. La <strong>QVL</strong> es la lista de memorias que el fabricante ha probado en esa placa.</p>
+  </section>
+
+  <section id="sec-7">
+    <h2>7. Comprobar que las piezas son compatibles</h2>
+    <p>Checklist de la T7: si algún punto sale NO, hay que cambiar la pieza.</p>
+    <ol class="check">
+      <li><div>El zócalo del procesador es el de la placa</div></li>
+      <li><div>El formato de la placa cabe en el chasis</div></li>
+      <li><div>El procesador está en la lista de compatibles de la placa</div></li>
+      <li><div>La memoria es del tipo que admite la placa y es DIMM</div></li>
+      <li><div>La memoria son dos módulos iguales (kit), para el doble canal</div></li>
+      <li><div>La refrigeración es compatible con el zócalo</div></li>
+      <li><div>La refrigeración cabe en el chasis (altura o radiador)</div></li>
+      <li><div>La refrigeración es suficiente para el TDP</div></li>
+      <li><div>Sin tarjeta gráfica, el procesador tiene gráficos integrados</div></li>
+    </ol>
+  </section>
+
+  <section id="sec-8">
+    <h2>8. Vocabulario en inglés</h2>
+    <ul class="vocab">
+      <li><strong>Core / Thread:</strong> núcleo / hilo</li>
+      <li><strong>Base / Boost clock:</strong> frecuencia base / turbo</li>
+      <li><strong>Cache:</strong> caché</li>
+      <li><strong>Socket:</strong> zócalo</li>
+      <li><strong>Unlocked:</strong> desbloqueado</li>
+      <li><strong>Integrated graphics:</strong> gráficos integrados</li>
+      <li><strong>Processor Base Power / TDP:</strong> potencia base / TDP</li>
+      <li><strong>CPU support list:</strong> lista de compatibles</li>
+      <li><strong>Heatsink:</strong> disipador</li>
+      <li><strong>Heat pipe:</strong> heatpipe (tubo de calor)</li>
+      <li><strong>Fan / Fan header:</strong> ventilador / conector</li>
+      <li><strong>Thermal paste:</strong> pasta térmica</li>
+      <li><strong>Thermal throttling:</strong> bajada de frecuencia por calor</li>
+      <li><strong>Airflow:</strong> flujo de aire</li>
+      <li><strong>Memory slot:</strong> ranura de memoria</li>
+      <li><strong>Dual channel:</strong> doble canal</li>
+    </ul>
+  </section>
+
+  <p style="margin-top:44px"><button class="btn copper" id="go-test">Ya me lo sé: ir al test</button></p>
+</article>
+
+</div>
+</div>
+
+<div class="view" id="view-test" role="tabpanel" aria-labelledby="tab-test" hidden>
+  <div class="card" id="stage"></div>
+</div>
+
+<div class="view" id="view-hist" role="tabpanel" aria-labelledby="tab-hist" hidden>
+  <div id="hist"></div>
+</div>
+</main>
+
+<button class="btn copper" id="back" hidden></button>
+
+<script>
+/* ---------- Temas y secciones ---------- */
+var TEMAS = {
+  cpu:{n:"El microprocesador por dentro", ref:"sec-1", c:"Repasa qué hace cada parte (la UC manda, la ALU calcula), los niveles de caché y cómo cuenta Windows los hilos."},
+  fam:{n:"Familias, gamas y nombres", ref:"sec-2", c:"Aprende los sufijos: K, F, KF, X, G, X3D y H/HX/U."},
+  zoc:{n:"Zócalos, chipset y potencia", ref:"sec-3", c:"Memoriza qué zócalo usa cada familia, qué memoria admite y que el TDP son vatios de calor."},
+  ref:{n:"Refrigeración", ref:"sec-4", c:"Repasa el camino del calor, la pasta térmica, los pines del ventilador y el flujo de aire."},
+  ram:{n:"La memoria RAM", ref:"sec-5", c:"Aprende a leer la etiqueta (PC4 = DDR4, S = portátil) y la fórmula de la latencia."},
+  pla:{n:"La memoria en la placa base", ref:"sec-6", c:"Practica con las ranuras A1, A2, B1 y B2 y recuerda que XMP o EXPO sube la velocidad."},
+  com:{n:"Compatibilidad de piezas", ref:"sec-7", c:"Repasa el checklist de 9 puntos, sobre todo la lista de procesadores compatibles."}
+};
+var TEMA_ORDER = ["cpu","fam","zoc","ref","ram","pla","com"];
+
+var REFS = {
+  "sec-1-2":"1.2 Sus partes","sec-1-3":"1.3 Núcleos e hilos","sec-1-4":"1.4 Frecuencia y caché",
+  "sec-2":"2. Nombres y sufijos","sec-2-3":"2.3 Sufijos",
+  "sec-3-1":"3.1 El zócalo","sec-3-2":"3.2 Chipset y BIOS","sec-3-3":"3.3 TDP y tensiones",
+  "sec-4-1":"4.1 Por qué refrigerar","sec-4-2":"4.2 Partes del disipador","sec-4-3":"4.3 Ventiladores","sec-4-4":"4.4 Pasta térmica","sec-4-5":"4.5 Tipos y elección","sec-4-6":"4.6 Flujo de aire",
+  "sec-5-1":"5. La memoria RAM","sec-5-2":"5.2 DDR4 y DDR5","sec-5-3":"5.3 Formato y latencia","sec-5-4":"5.4 La etiqueta",
+  "sec-6-1":"6.1 Ranuras y canales","sec-6-2":"6.2 Quién decide la memoria",
+  "sec-7":"7. Compatibilidad"
+};
+
+/* Formato compacto: ok = respuesta correcta; no = [[texto, por qué falla], ...] */
+var RAW = [
+/* ===== cpu ===== */
+{id:"q01",tema:"cpu",ref:"sec-1-2",corto:"Qué parte del procesador calcula",
+ q:"¿Qué parte del procesador hace los cálculos y las comparaciones?",
+ ok:"La ALU (unidad aritmético-lógica)",
+ no:[["La unidad de control (UC)","La UC no calcula: lee las instrucciones y da órdenes. Es el jefe."],["Los registros","Solo guardan los datos del momento."],["La caché","Guarda lo que se usará pronto; no calcula."]],
+ facil:"La UC es el jefe de cocina que manda; la ALU es el cocinero que calcula."},
+{id:"q02",tema:"cpu",ref:"sec-1-3",corto:"Procesadores lógicos de 8 núcleos y 16 hilos",
+ q:"Un procesador tiene 8 núcleos y 16 hilos. ¿Cuántos procesadores lógicos verás en el Administrador de tareas de Windows?",
+ ok:"16",
+ no:[["8","Son los núcleos. Windows cuenta hilos."],["24","No se suman: los 16 hilos ya incluyen a los núcleos."],["2","Son los hilos por núcleo, no el total (8 × 2)."]],
+ facil:"Un núcleo es un cocinero y un hilo es una mano. Windows cuenta manos (hilos): 16."},
+{id:"q03",tema:"fam",ref:"sec-2-3",corto:"Qué le falta a un procesador con sufijo F",
+ q:"Compras un Intel Core i5-14400F. ¿Qué le falta y qué necesitas para usarlo?",
+ ok:"Le faltan los gráficos integrados: necesitas una tarjeta gráfica",
+ no:[["Le falta el desbloqueo: necesitas una placa de gama Z","Eso es la K. La F quita los gráficos."],["Le falta caché L3: hay que añadir más RAM","La F no quita caché."],["Es un procesador de portátil: necesitas un chasis pequeño","Los de portátil llevan H, HX o U."]],
+ facil:"F = sin gráficos dentro. Sin tarjeta gráfica no hay imagen."},
+{id:"q04",tema:"fam",ref:"sec-2-3",corto:"Qué significa X3D",
+ q:"¿Qué significa el sufijo X3D en un procesador AMD?",
+ ok:"Tiene caché L3 extra apilada encima del chip y es muy bueno para juegos",
+ no:[["Lleva gráficos integrados potentes","Eso es la G."],["Está desbloqueado para overclocking","Eso es la K de Intel. La X de AMD son frecuencias más altas."],["Es un procesador de portátil","Los de portátil llevan H, HX o U."]],
+ facil:"X3D = caché L3 extra apilada encima: menos esperas a la RAM, ideal para juegos."},
+{id:"q05",tema:"zoc",ref:"sec-3-1",corto:"Zócalo de los Ryzen 9000",
+ q:"Quieres montar un Ryzen 9000. ¿Qué zócalo debe tener la placa base?",
+ ok:"AM5",
+ no:[["AM4","Es para los Ryzen 5000 y anteriores."],["LGA1700","Es de Intel (12.ª a 14.ª generación)."],["LGA1851","Es de Intel (Core Ultra 200S)."]],
+ facil:"AMD actual = AM5, Ryzen 5000 = AM4, Intel 12.ª a 14.ª = LGA1700, Core Ultra 200S = LGA1851."},
+{id:"q06",tema:"zoc",ref:"sec-3-3",corto:"Qué indica el TDP",
+ q:"¿Qué indica el TDP de un procesador y para qué sirve saberlo?",
+ ok:"El calor, en vatios, que debe evacuar la refrigeración; sirve para elegir un disipador suficiente",
+ no:[["La tensión del núcleo; sirve para elegir la fuente","Esa es el Vcore (1–1,4 V). El TDP va en vatios."],["La velocidad máxima en GHz","Eso es la frecuencia. El TDP habla de calor."],["La temperatura máxima a la que se apaga","Esa es la Tj máx., en grados."]],
+ facil:"El TDP es la potencia de la «estufa» en vatios: el disipador tiene que quitar ese calor."},
+{id:"q07",tema:"ref",ref:"sec-4-1",corto:"Qué hace el procesador al acercarse a su temperatura máxima",
+ q:"Un procesador se acerca a su temperatura máxima. ¿Qué hace primero?",
+ ok:"Baja la frecuencia para calentarse menos (throttling)",
+ no:[["Se apaga directamente","Eso es lo último, si aun así sigue subiendo."],["Sube la frecuencia turbo","Al revés: más frecuencia da más calor."],["No hace nada","Se protege bajando la velocidad; por eso el equipo va lento."]],
+ facil:"Primero va más despacio (throttling); si sigue subiendo, se apaga."},
+{id:"q08",tema:"ref",ref:"sec-4-4",corto:"Para qué sirve la pasta térmica",
+ q:"¿Para qué sirve la pasta térmica?",
+ ok:"Rellena los huecos microscópicos de aire entre el procesador y el disipador",
+ no:[["Pega el disipador al procesador","No pega: el disipador se sujeta con el anclaje."],["Enfría el procesador por sí sola","No enfría por sí sola: solo ayuda a pasar el calor."],["Protege de la electricidad estática","Su trabajo es conducir el calor."]],
+ facil:"El aire entre las dos piezas conduce mal el calor; la pasta rellena esos huecos."},
+{id:"q09",tema:"ref",ref:"sec-4-3",corto:"Ventilador de 3 pines frente a 4 pines",
+ q:"¿Qué diferencia hay entre un ventilador de 3 pines y uno de 4 pines (PWM)?",
+ ok:"Con 3 pines se regula cambiando la tensión; con 4 pines, con una señal de control, más precisa",
+ no:[["El de 3 pines no se puede regular","Sí se regula, pero cambiando la tensión."],["El de 4 pines siempre va en CPU_FAN","El conector depende de dónde esté el ventilador, no de los pines."],["El de 4 pines es más grande","Los pines no tienen que ver con el tamaño."]],
+ facil:"Con 4 pines la placa manda una señal de control; con 3 solo cambia la tensión."},
+{id:"q10",tema:"ref",ref:"sec-4-6",corto:"Presión negativa en el chasis",
+ q:"Un chasis expulsa más aire del que entra. ¿Cómo se llama y qué problema da?",
+ ok:"Presión negativa: aspira aire y polvo por cualquier rendija",
+ no:[["Presión positiva: aspira aire y polvo por las rendijas","La positiva es al revés: entra más del que sale y el sobrante escapa."],["Flujo equilibrado: no da problemas","Aquí sale más del que entra."],["Throttling: el procesador va más lento","Eso es bajar la frecuencia por calor."]],
+ facil:"Si sale más aire del que entra, el chasis chupa aire y polvo por las rendijas."},
+{id:"q11",tema:"ram",ref:"sec-5-4",corto:"Leer la etiqueta 8GB PC4-3200AA-SA2",
+ q:"Un módulo lleva la etiqueta «8GB PC4-3200AA-SA2». ¿Qué es?",
+ ok:"DDR4, portátil (SO-DIMM), 8 GB y 3200 MT/s",
+ no:[["DDR4, sobremesa (DIMM), 8 GB y 3200 MT/s","La S es portátil; sobremesa sería U."],["DDR5, portátil (SO-DIMM), 8 GB y 3200 MT/s","PC4 es DDR4; DDR5 sería PC5."],["DDR3, portátil (SO-DIMM), 8 GB y 3200 MT/s","PC3 sería DDR3; aquí pone PC4."]],
+ facil:"PC4 = DDR4, 3200 = velocidad, S = portátil (U = sobremesa)."},
+{id:"q12",tema:"ram",ref:"sec-5-3",corto:"Comparar latencia de DDR4-3200 CL16 y DDR5-6000 CL30",
+ q:"Tienes un kit DDR4-3200 CL16 y otro DDR5-6000 CL30. ¿Cuál tarda menos en responder?",
+ ok:"Tardan lo mismo: 10 ns cada uno",
+ no:[["El DDR4, porque su CL es menor","El CL no se compara entre tecnologías: DDR4 = 16 × 2000 / 3200 = 10 ns."],["El DDR5, porque su velocidad es mayor","DDR5 = 30 × 2000 / 6000 = 10 ns, igual."],["No se puede saber sin probarlos","Sí: CL × 2000 / velocidad."]],
+ facil:"Latencia real = CL × 2000 ÷ velocidad. Los dos salen 10 ns."},
+{id:"q13",tema:"pla",ref:"sec-6-1",corto:"Dónde poner 16 GB en una placa de 4 ranuras",
+ q:"Tienes un módulo de 16 GB y dos de 8 GB, y una placa de 4 ranuras. Quieres 16 GB lo más rápido posible. ¿Qué pones?",
+ ok:"Los dos de 8 GB, en A2 y B2 (uno por canal)",
+ no:[["El de 16 GB solo, en A2","Funciona, pero usa un solo canal."],["Los tres módulos (16 + 8 + 8)","Son 32 GB, y con tres módulos un canal queda con más memoria."],["El de 16 GB en A2 y uno de 8 GB en B2","Módulos distintos y 24 GB: mala idea."]],
+ facil:"Un módulo por canal = doble canal. El de 16 GB solo usa un canal."},
+{id:"q14",tema:"pla",ref:"sec-6-2",corto:"Velocidad de un kit DDR5-6400 sin XMP ni EXPO",
+ q:"Una placa pone «DDR5 6400+(OC)/5600/4800». Compras un kit DDR5-6400 y no tocas la UEFI. ¿A qué velocidad irá normalmente?",
+ ok:"4800 MT/s",
+ no:[["6400 MT/s, lo que pone la caja","Es con overclocking: hay que activar XMP o EXPO."],["3200 MT/s","Es velocidad típica de DDR4."],["12800 MT/s, por el doble canal","El doble canal no multiplica la velocidad."]],
+ facil:"Sin XMP o EXPO la memoria va a su velocidad básica (4800); 6400 es con overclocking."},
+{id:"q15",tema:"com",ref:"sec-3-2",corto:"Mismo zócalo pero no arranca con el procesador",
+ q:"Una placa y un procesador nuevo tienen el mismo zócalo y la misma marca, pero el equipo no arranca. ¿Qué compruebas?",
+ ok:"Que el procesador esté en la lista de compatibles de la placa; quizá haga falta actualizar la BIOS",
+ no:[["Nada más: mismo zócalo es siempre compatible","No basta el zócalo: hay que mirar la lista de compatibles."],["Que el chasis tenga más ventiladores","Los ventiladores no impiden arrancar."],["Que la memoria sea siempre DDR5","Depende de la placa (en LGA1700 puede ser DDR4 o DDR5)."]],
+ facil:"El zócalo encaja, pero la placa debe tener ese procesador en su lista (CPU support list)."},
+
+/* ===== cpu (nuevas) ===== */
+{id:"q16",tema:"cpu",ref:"sec-1-2",corto:"Qué parte da las órdenes",
+ q:"¿Qué parte del procesador lee cada instrucción, la interpreta y da órdenes al resto?",
+ ok:"La unidad de control (UC)",
+ no:[["La ALU","Calcula y compara, pero no manda."],["Los registros","Guardan los datos del momento."],["El controlador de memoria","Comunica el procesador con la RAM."]],
+ facil:"La UC es el jefe: lee la «receta» y manda."},
+{id:"q17",tema:"cpu",ref:"sec-1-2",corto:"Para qué sirve la caché",
+ q:"¿Para qué sirve la caché del procesador?",
+ ok:"Guarda lo que se va a usar pronto, para no esperar a la RAM",
+ no:[["Hace los cálculos","Eso es la ALU."],["Comunica el procesador con la RAM","Eso es el controlador de memoria."],["Guarda los programas al apagar el equipo","Guardar al apagar es trabajo del disco."]],
+ facil:"Es la mesa de trabajo junto al cocinero: lo que vas a usar, a mano."},
+{id:"q18",tema:"cpu",ref:"sec-1-4",corto:"Qué nivel de caché es el mayor y más lento",
+ q:"¿Qué nivel de caché es el más grande y lento, compartido por todos los núcleos?",
+ ok:"L3",
+ no:[["L1","Es la más pequeña y rápida, una por núcleo."],["L2","Es mayor que L1 y algo más lenta, normalmente una por núcleo."],["Los registros","Son aún más pequeños y rápidos, y no son un nivel de caché."]],
+ facil:"L1 es la mesa, L2 la estantería y L3 el almacén: más lejos, más grande y más lento."},
+{id:"q19",tema:"cpu",ref:"sec-1-3",corto:"Núcleos a partir de procesadores lógicos",
+ q:"Windows muestra 12 procesadores lógicos y el procesador lleva 2 hilos por núcleo. ¿Cuántos núcleos tiene?",
+ ok:"6",
+ no:[["12","Eso sería con 1 hilo por núcleo."],["24","Has multiplicado en vez de dividir."],["4","Con 4 núcleos y 2 hilos saldrían 8."]],
+ facil:"Procesadores lógicos = hilos = núcleos × 2. Así que 12 ÷ 2 = 6."},
+{id:"q20",tema:"cpu",ref:"sec-1-3",corto:"Núcleos P y núcleos E",
+ q:"En un Intel actual, ¿qué son los núcleos E?",
+ ok:"Núcleos de eficiencia, que gastan menos",
+ no:[["Núcleos de más rendimiento","Esos son los P."],["Núcleos que solo se usan en overclocking","Son de eficiencia, no de overclocking."],["Núcleos que solo manejan gráficos","Son de eficiencia, no de gráficos."]],
+ facil:"P = rendimiento (potentes); E = eficiencia (económicos)."},
+{id:"q21",tema:"cpu",ref:"sec-1-4",corto:"Cuándo se nota tener más núcleos",
+ q:"Un procesador de 8 núcleos y otro de 4, misma generación. ¿Cuándo va el de 8 casi el doble de rápido?",
+ ok:"Cuando el programa sabe repartir el trabajo entre todos los núcleos",
+ no:[["Siempre, en cualquier programa","No siempre: depende del programa."],["Cuando se activa el turbo","El turbo sube la frecuencia, no reparte trabajo."],["Solo si tiene más GHz","Núcleos y GHz son cosas distintas."]],
+ facil:"Más cocineros solo ayudan si hay platos que repartir."},
+
+/* ===== fam (nuevas) ===== */
+{id:"q22",tema:"fam",ref:"sec-2-3",corto:"Qué significa K en Intel",
+ q:"¿Qué significa el sufijo K en un procesador Intel?",
+ ok:"Desbloqueado: admite overclocking",
+ no:[["Sin gráficos integrados","Eso es la F."],["Procesador de portátil","Eso son H, HX y U."],["Gráficos integrados potentes","Eso es la G de AMD."]],
+ facil:"K = desbloqueado: se le puede subir la velocidad."},
+{id:"q23",tema:"fam",ref:"sec-2-3",corto:"Qué es un KF",
+ q:"¿Qué características tiene un Intel Core i7-14700KF?",
+ ok:"Desbloqueado y sin gráficos integrados",
+ no:[["Desbloqueado y con gráficos integrados","La F quita los gráficos."],["Bloqueado y sin gráficos integrados","La K lo desbloquea."],["Procesador de portátil con caché extra","KF es de sobremesa."]],
+ facil:"KF = K (desbloqueado) + F (sin gráficos)."},
+{id:"q24",tema:"fam",ref:"sec-2-3",corto:"Qué procesador sirve sin tarjeta gráfica",
+ q:"Montas un equipo sin tarjeta gráfica. ¿Qué procesador te vale?",
+ ok:"AMD Ryzen 5 5600G",
+ no:[["AMD Ryzen 5 5600","En AM4 solo los G traen gráficos."],["Intel Core i5-14400F","La F no tiene gráficos."],["Intel Core i7-14700KF","KF no tiene gráficos."]],
+ facil:"Sin tarjeta gráfica necesitas gráficos integrados: ni F ni KF, y en AM4 solo los G."},
+{id:"q25",tema:"fam",ref:"sec-2",corto:"Leer el nombre Ryzen 5 7600X",
+ q:"En «Ryzen 5 7600X», ¿qué indican el 5 y el 7 del principio?",
+ ok:"El 5 es la gama y el 7 la generación (serie 7000)",
+ no:[["El 5 es la generación y el 7 la gama","Al revés."],["El 5 son los núcleos y el 7 los hilos","No son núcleos ni hilos."],["El 5 es la frecuencia y el 7 el zócalo","No indican frecuencia ni zócalo."]],
+ facil:"Gama 3, 5, 7 o 9 (de básica a muy alta); las cifras siguientes marcan la generación."},
+{id:"q26",tema:"fam",ref:"sec-2-3",corto:"Sufijos de portátil",
+ q:"¿Qué sufijos llevan los procesadores de portátil?",
+ ok:"H, HX y U",
+ no:[["K y KF","Son de sobremesa y desbloqueados."],["F y G","Indican sin gráficos y con gráficos."],["X y X3D","Son de sobremesa: frecuencias altas y caché extra."]],
+ facil:"Portátil: H, HX y U."},
+{id:"q27",tema:"fam",ref:"sec-2",corto:"Dónde comprobar la ficha oficial",
+ q:"¿Dónde se comprueban los datos oficiales de un procesador?",
+ ok:"En la web del fabricante (Intel ARK o la ficha de AMD)",
+ no:[["En la etiqueta de la tienda","Los datos fiables son los del fabricante."],["En el manual de la fuente","La fuente no trae datos del procesador."],["En un comentario de otro comprador","No es una fuente oficial."]],
+ facil:"Datos fiables: Intel ARK y la web de AMD, no la tienda."},
+
+/* ===== zoc (nuevas) ===== */
+{id:"q28",tema:"zoc",ref:"sec-3-1",corto:"Zócalo de un Core Ultra 7 265K",
+ q:"¿Qué zócalo usa un Intel Core Ultra 7 265K?",
+ ok:"LGA1851",
+ no:[["LGA1700","Es de las generaciones 12.ª a 14.ª."],["AM5","Es de AMD."],["AM4","Es de AMD."]],
+ facil:"Core Ultra 200S = LGA1851."},
+{id:"q29",tema:"zoc",ref:"sec-3-1",corto:"Diferencia entre LGA y PGA",
+ q:"¿Qué diferencia hay entre un zócalo LGA y uno PGA?",
+ ok:"En LGA los contactos están en la placa; en PGA, los pines están en el procesador",
+ no:[["Al revés: en LGA los pines están en el procesador","En LGA los contactos están en la placa."],["LGA es solo de Intel y PGA solo de AMD","AMD usa LGA en AM5."],["LGA es para DDR4 y PGA para DDR5","No tiene que ver con la memoria."]],
+ facil:"LGA: los contactos van en la placa. PGA (AM4): los pines van en el procesador."},
+{id:"q30",tema:"zoc",ref:"sec-3-1",corto:"Memoria de una placa AM4",
+ q:"¿Qué memoria admite una placa con zócalo AM4?",
+ ok:"DDR4",
+ no:[["DDR5","AM4 es solo DDR4."],["DDR4 o DDR5, según la placa","Eso pasa en LGA1700, no en AM4."],["Las dos a la vez","Una placa admite un tipo u otro, nunca los dos."]],
+ facil:"AM4 = DDR4; AM5 y LGA1851 = DDR5; LGA1700 = DDR4 o DDR5 según la placa."},
+{id:"q31",tema:"zoc",ref:"sec-3-1",corto:"Procesador para una placa LGA1851",
+ q:"Tienes una placa LGA1851. ¿Qué procesador puedes montar?",
+ ok:"Un Intel Core Ultra 200S",
+ no:[["Un Intel Core de 14.ª generación","Es LGA1700."],["Un AMD Ryzen 9000","Es AM5."],["Un AMD Ryzen 5000","Es AM4."]],
+ facil:"Cada zócalo admite una sola familia: LGA1851 = Core Ultra 200S."},
+{id:"q32",tema:"zoc",ref:"sec-3-2",corto:"Chipsets H, B y Z",
+ q:"¿Qué indican las letras H, B y Z en el chipset de una placa Intel?",
+ ok:"La gama de la placa: H básica, B media y Z alta (permite overclocking)",
+ no:[["El tipo de memoria que admite","Eso lo marcan el procesador y la placa, no estas letras."],["El tamaño del chasis","No indican tamaño."],["El número de núcleos del procesador","El chipset es de la placa."]],
+ facil:"H < B < Z: de básica a alta; la Z permite overclocking."},
+{id:"q33",tema:"zoc",ref:"sec-3-2",corto:"Chipsets de AMD",
+ q:"En una placa AMD, ¿qué letra de chipset es la de gama alta?",
+ ok:"X",
+ no:[["A","Es la básica."],["B","Es la media."],["Z","Es de Intel."]],
+ facil:"AMD: A básica, B media, X alta."},
+{id:"q34",tema:"zoc",ref:"sec-3-3",corto:"Tensión del núcleo",
+ q:"¿Qué valor tiene la tensión del núcleo (Vcore) de un procesador?",
+ ok:"Muy baja: en torno a 1–1,4 V",
+ no:[["12 V","Esa es la del conector EPS de la fuente."],["230 V","Es la de la red eléctrica."],["65 V","El 65 es el TDP de un procesador de oficina, en vatios."]],
+ facil:"La placa baja los 12 V del EPS hasta ~1 V con el VRM."},
+
+/* ===== ref (nuevas) ===== */
+{id:"q35",tema:"ref",ref:"sec-4-2",corto:"Qué hacen los heatpipes",
+ q:"¿Qué hacen los heatpipes de un disipador?",
+ ok:"Llevan el calor de la base a las aletas",
+ no:[["Sujetan el disipador a la placa","Eso es el anclaje."],["Mueven el aire entre las aletas","Eso es el ventilador."],["Rellenan los huecos de aire","Eso es la pasta térmica."]],
+ facil:"Son las «tuberías» del calor: de la base a las aletas."},
+{id:"q36",tema:"ref",ref:"sec-4-2",corto:"Camino del calor",
+ q:"¿Cuál es el camino correcto del calor en un disipador?",
+ ok:"Procesador → base → heatpipes → aletas → aire",
+ no:[["Procesador → aletas → base → heatpipes → aire","Las aletas van al final, no justo después del procesador."],["Procesador → heatpipes → base → aire → aletas","La base toca el procesador antes que los heatpipes."],["Aire → aletas → heatpipes → base → procesador","Es el camino al revés."]],
+ facil:"El calor sale del procesador y acaba en el aire: base, heatpipes, aletas."},
+{id:"q37",tema:"ref",ref:"sec-4-2",corto:"Disipador pasivo",
+ q:"¿Qué es un disipador pasivo?",
+ ok:"Uno sin ventilador: silencioso, pero solo vale para muy poca potencia",
+ no:[["Uno con un ventilador muy lento","No lleva ventilador."],["Uno de líquida","No tiene que ver con líquida."],["Uno pensado para procesadores de gama alta","Al revés: solo vale para poca potencia."]],
+ facil:"Pasivo = sin ventilador: silencio, pero poca capacidad."},
+{id:"q38",tema:"ref",ref:"sec-4-3",corto:"Qué ventilador hace menos ruido",
+ q:"A igual caudal de aire, ¿qué ventilador hace menos ruido?",
+ ok:"El más grande (140 mm), porque gira más despacio",
+ no:[["El más pequeño (92 mm)","Tiene que girar más rápido, y hace más ruido."],["El de 3 pines","Los pines no cambian el ruido."],["Todos hacen el mismo ruido","El tamaño importa."]],
+ facil:"Más grande = gira más despacio = menos ruido."},
+{id:"q39",tema:"ref",ref:"sec-4-3",corto:"Dónde se enchufa el ventilador del procesador",
+ q:"¿En qué conector de la placa enchufas el ventilador del procesador?",
+ ok:"CPU_FAN",
+ no:[["SYS_FAN","Es para los ventiladores del chasis."],["EPS","Es el conector de 12 V de la fuente para el procesador."],["PCIe","Es la ranura de tarjetas."]],
+ facil:"CPU_FAN para el procesador. Si está vacío, muchas placas no arrancan o dan error."},
+{id:"q40",tema:"ref",ref:"sec-4-3",corto:"Unidades de velocidad y ruido",
+ q:"¿En qué unidades se miden la velocidad y el ruido de un ventilador?",
+ ok:"rpm y dB",
+ no:[["GHz y W","Son frecuencia y potencia."],["MT/s y V","Son de la memoria y la tensión."],["mm y rpm","Los mm son el tamaño, y el ruido no va en rpm."]],
+ facil:"Velocidad en rpm; ruido en decibelios (dB)."},
+{id:"q41",tema:"ref",ref:"sec-4-5",corto:"Refrigeración para un procesador muy potente",
+ q:"Tienes un procesador muy potente y un chasis que admite radiador de 360 mm. ¿Qué refrigeración eliges?",
+ ok:"Líquida AIO",
+ no:[["Disipador de serie","Es para procesadores de poca potencia."],["Disipador de perfil bajo","Es para chasis con poca altura, no para mucha potencia."],["Disipador pasivo","Solo vale para muy poca potencia."]],
+ facil:"Muy potente + sitio para el radiador = líquida AIO (240, 280 o 360 mm)."},
+{id:"q42",tema:"ref",ref:"sec-4-5",corto:"Refrigeración para un chasis pequeño",
+ q:"Montas un equipo en un chasis pequeño con muy poca altura libre. ¿Qué disipador eliges?",
+ ok:"De perfil bajo",
+ no:[["Torre de aire","La torre necesita altura suficiente."],["Líquida AIO","Necesita que el chasis admita el radiador."],["Pasivo con aletas enormes","Un pasivo solo vale para muy poca potencia."]],
+ facil:"Para elegir miras el TDP y el espacio del chasis. Poca altura = perfil bajo."},
+
+/* ===== ram (nuevas) ===== */
+{id:"q43",tema:"ram",ref:"sec-5-1",corto:"Qué es una memoria volátil",
+ q:"¿Qué significa que la RAM es volátil?",
+ ok:"Que al apagar el equipo se borra",
+ no:[["Que es más lenta que el disco","Es mucho más rápida."],["Que guarda los datos para siempre","Es lo contrario."],["Que está dentro del procesador","Eso es la caché."]],
+ facil:"Volátil = se borra al apagar. Por eso guardas en el disco."},
+{id:"q44",tema:"ram",ref:"sec-5-2",corto:"DDR5 en una ranura DDR4",
+ q:"¿Qué pasa si intentas poner un módulo DDR5 en una ranura DDR4?",
+ ok:"No entra: la muesca está en otra posición",
+ no:[["Entra y funciona más lento","No entra."],["Entra y funciona igual","No entra."],["Entra, pero hay que activar el XMP","No entra, así que no hay nada que activar."]],
+ facil:"La muesca está en distinto sitio: DDR4 y DDR5 no son intercambiables."},
+{id:"q45",tema:"ram",ref:"sec-5-2",corto:"Tensión de la DDR5",
+ q:"¿Qué tensión usa la memoria DDR5?",
+ ok:"1,1 V",
+ no:[["1,2 V","Es la de DDR4."],["12 V","Es la del conector EPS de la fuente."],["1,4 V","Es el extremo del Vcore del procesador."]],
+ facil:"DDR4 = 1,2 V; DDR5 = 1,1 V."},
+{id:"q46",tema:"ram",ref:"sec-5-3",corto:"Formato de memoria de portátil",
+ q:"¿Qué formato de memoria usan los portátiles y miniordenadores?",
+ ok:"SO-DIMM",
+ no:[["DIMM","Es el largo, de sobremesa."],["XMP","Es un perfil de velocidad, no un formato."],["QVL","Es una lista de memorias probadas."]],
+ facil:"SO-DIMM = más corto, de portátil. DIMM = largo, de sobremesa."},
+{id:"q47",tema:"ram",ref:"sec-5-3",corto:"MHz frente a MT/s",
+ q:"Una tienda anuncia memoria a 6000 «MHz». ¿Qué relación tiene con los MT/s?",
+ ok:"El número es el mismo: 6000 MT/s",
+ no:[["MT/s es el doble: 12000","Es el mismo número."],["MT/s es la mitad: 3000","Es el mismo número."],["Son cosas distintas: MHz es la capacidad","MHz es velocidad; la capacidad va en GB."]],
+ facil:"Las tiendas dicen «MHz», pero el dato técnico es MT/s y el número coincide."},
+{id:"q48",tema:"ram",ref:"sec-5-4",corto:"Qué indica la U de la etiqueta",
+ q:"En la etiqueta «16GB 1Rx8 PC5-4800B-UA0», ¿qué indica la U?",
+ ok:"Sobremesa (DIMM)",
+ no:[["Portátil (SO-DIMM)","Esa es la S."],["Velocidad ultra","No es una velocidad: eso es el 4800."],["Tensión de 1,1 V","La tensión no va en la etiqueta."]],
+ facil:"U = sobremesa (DIMM); S = portátil (SO-DIMM)."},
+{id:"q49",tema:"ram",ref:"sec-5-3",corto:"Por qué se venden kits",
+ q:"Compras un kit de 2 × 16 GB. ¿Cuánta memoria tienes y por qué se vende así?",
+ ok:"32 GB; en pareja de módulos iguales para el doble canal",
+ no:[["16 GB; el otro módulo es de repuesto","Son 32 GB y los dos trabajan."],["32 GB; solo porque sale más barato","Se vende en kit para el doble canal."],["32 GB, pero funcionan en un solo canal","Con un módulo por canal hay doble canal."]],
+ facil:"Un kit son dos módulos iguales, hechos para el doble canal."},
+
+/* ===== pla (nuevas) ===== */
+{id:"q50",tema:"pla",ref:"sec-6-1",corto:"Canales del controlador de memoria",
+ q:"¿Cuántos canales tiene el controlador de memoria de un procesador de sobremesa?",
+ ok:"Dos: A y B",
+ no:[["Uno","Tiene dos."],["Cuatro: A1, A2, B1 y B2","Esas son las ranuras, no los canales."],["Tres","Tiene dos."]],
+ facil:"Dos canales (A y B) = dos carreteras hacia la memoria."},
+{id:"q51",tema:"pla",ref:"sec-6-1",corto:"Dónde van dos módulos en 4 ranuras",
+ q:"Tienes dos módulos iguales y una placa de 4 ranuras. ¿Dónde los pones normalmente?",
+ ok:"En A2 y B2",
+ no:[["En A1 y A2","Los dos quedarían en el mismo canal."],["En B1 y B2","Los dos quedarían en el mismo canal."],["En A1 y B1","Casi siempre es A2 y B2; lo manda el manual de la placa."]],
+ facil:"Uno por canal, casi siempre en A2 y B2. Confirma en el manual."},
+{id:"q52",tema:"pla",ref:"sec-6-1",corto:"Dos módulos en el mismo canal",
+ q:"Pones dos módulos de 8 GB iguales, los dos en el canal A. ¿Qué pasa?",
+ ok:"No tienes doble canal: hace falta un módulo en cada canal",
+ no:[["Tienes doble canal igualmente","El doble canal exige un módulo por canal."],["No arranca","Arranca, pero sin doble canal."],["La memoria va al doble de velocidad","El doble canal no multiplica la velocidad y aquí ni lo hay."]],
+ facil:"Doble canal = un módulo en cada carretera (canal)."},
+{id:"q53",tema:"pla",ref:"sec-6-1",corto:"Mezclar velocidades de memoria",
+ q:"Mezclas un módulo a 3200 MT/s con otro a 2666 MT/s. ¿A qué velocidad funcionan?",
+ ok:"Los dos a la del más lento (2666)",
+ no:[["Los dos a 3200","Se adapta al más lento."],["Cada uno a la suya","Funcionan a la velocidad del más lento."],["Se suman: 5866","Las velocidades no se suman."]],
+ facil:"Mezclas = todos a la velocidad del más lento. Por eso se compran en kit."},
+{id:"q54",tema:"pla",ref:"sec-6-2",corto:"Perfil de memoria en AMD",
+ q:"En un equipo AMD, ¿qué activas en la UEFI para que la memoria vaya a la velocidad de su caja?",
+ ok:"El perfil EXPO",
+ no:[["El perfil XMP","Es el de Intel."],["La QVL","Es la lista de memorias probadas."],["El TDP","Es el calor del procesador."]],
+ facil:"XMP en Intel, EXPO en AMD."},
+{id:"q55",tema:"pla",ref:"sec-6-2",corto:"Qué es la QVL",
+ q:"¿Qué es la QVL de una placa base?",
+ ok:"La lista de memorias que el fabricante ha probado en esa placa",
+ no:[["La lista de procesadores compatibles","Esa es la CPU support list."],["El perfil que sube la velocidad","Eso es XMP o EXPO."],["El código de la etiqueta del módulo","No tiene que ver con la etiqueta."]],
+ facil:"QVL = memorias probadas; CPU support list = procesadores compatibles."},
+
+/* ===== com (nuevas) ===== */
+{id:"q56",tema:"com",ref:"sec-7",corto:"Qué mirar si no hay tarjeta gráfica",
+ q:"Vas a montar un equipo sin tarjeta gráfica. ¿Qué compruebas en la ficha del procesador?",
+ ok:"Que tenga gráficos integrados",
+ no:[["Que sea desbloqueado (K)","No da imagen sin gráficos."],["Que lleve X3D","Eso es caché extra."],["Que tenga más de 8 núcleos","Los núcleos no dan imagen."]],
+ facil:"Sin tarjeta gráfica, el procesador debe tener gráficos integrados."},
+{id:"q57",tema:"com",ref:"sec-7",corto:"Memoria DDR5 en placa AM4",
+ q:"Compras un kit de 2 × 16 GB DDR5 para una placa AM4. ¿Qué falla?",
+ ok:"La memoria: AM4 solo admite DDR4",
+ no:[["El número de módulos","Dos módulos iguales están bien."],["La capacidad: 32 GB es demasiado","La capacidad no es el problema."],["Nada: DDR5 vale en todas las placas","DDR4 y DDR5 no son intercambiables."]],
+ facil:"La placa admite un tipo de memoria. AM4 = DDR4."},
+{id:"q58",tema:"com",ref:"sec-7",corto:"Disipador que no cabe en el chasis",
+ q:"Un disipador de torre no cabe en la altura del chasis. ¿Qué punto del checklist falla?",
+ ok:"La refrigeración cabe en el chasis",
+ no:[["La refrigeración es compatible con el zócalo","El anclaje puede encajar y aun así no caber."],["El procesador está en la lista de compatibles","Es otra comprobación."],["La memoria son dos módulos iguales","Es otra comprobación."]],
+ facil:"Mira la altura libre del chasis (o el tamaño de radiador que admite)."},
+{id:"q59",tema:"com",ref:"sec-7",corto:"Refrigeración insuficiente para el TDP",
+ q:"Un procesador de 125 W lleva un disipador pensado para 65 W. ¿Qué punto del checklist falla?",
+ ok:"La refrigeración es suficiente para el TDP",
+ no:[["La refrigeración cabe en el chasis","El tamaño no es el problema."],["El zócalo del procesador es el de la placa","Eso es otra comprobación."],["Sin tarjeta gráfica, hay gráficos integrados","Eso es otra comprobación."]],
+ facil:"El disipador debe poder quitar al menos el calor del TDP."},
+{id:"q60",tema:"com",ref:"sec-7",corto:"Ryzen 5000 en placa AM5",
+ q:"Tienes un Ryzen 5000 y una placa AM5. ¿Qué punto del checklist falla?",
+ ok:"El zócalo del procesador no es el de la placa",
+ no:[["La refrigeración es suficiente para el TDP","El problema es de encaje, no de calor."],["La memoria son dos módulos iguales","No tiene que ver con la memoria."],["Sin tarjeta gráfica, hay gráficos integrados","No tiene que ver con los gráficos."]],
+ facil:"Ryzen 5000 = AM4. No entra en una placa AM5."}
+];
+
+/* ---------- Convertir al formato de trabajo ---------- */
+function mkQ(b){
+  var opts=[{t:b.ok,ok:true,why:""}];
+  b.no.forEach(function(x){opts.push({t:x[0],ok:false,why:x[1]});});
+  return {id:b.id,tema:b.tema,ref:b.ref,corto:b.corto,q:b.q,opts:opts,facil:b.facil};
+}
+var BANK = RAW.map(mkQ);
+
+/* ---------- Generadores: preguntas con números distintos cada vez ---------- */
+function rnd(n){return Math.floor(Math.random()*n);}
+function pick(a){return a[rnd(a.length)];}
+function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=rnd(i+1);var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function uid(p){return "g-"+p+"-"+Math.random().toString(36).slice(2,8);}
+function build(base,okT,wrong,facil){
+  var opts=[{t:okT,ok:true,why:""}];
+  wrong.forEach(function(w){opts.push({t:w[0],ok:false,why:w[1]});});
+  base.opts=opts;base.facil=facil;return base;
+}
+
+var GENS = [
+ function(){ /* hilos */
+  var n=pick([4,6,8,10,12,14,16,20]), m=pick([1,2]);
+  var h=n*m;
+  var ws=[[String(n*3),"No se multiplica por 3."],[String(n+m),"No se suman: se multiplica."]];
+  if(m===2){ws.push([String(n),"Son los núcleos. Windows cuenta hilos."]);}
+  else{ws.push([String(n*2),"Este procesador tiene 1 hilo por núcleo."]);}
+  var okT=String(h);
+  ws=ws.filter(function(x,i,a){return x[0]!==okT && a.findIndex(function(y){return y[0]===x[0];})===i;});
+  while(ws.length<3){var v=String(h+pick([2,4,6,8]));if(v!==okT&&!ws.some(function(y){return y[0]===v;}))ws.push([v,"No sale de ningún cálculo con núcleos e hilos."]);}
+  return build({id:uid("hilos"),tema:"cpu",ref:"sec-1-3",corto:"Procesadores lógicos de "+n+" núcleos y "+h+" hilos",
+   q:"Un procesador tiene "+n+" núcleos y "+h+" hilos. ¿Cuántos procesadores lógicos verás en el Administrador de tareas?"},
+   okT,ws.slice(0,3),"Windows cuenta hilos: "+h+" procesadores lógicos ("+n+" núcleos × "+m+" "+(m===1?"hilo":"hilos")+").");
+ },
+ function(){ /* latencia */
+  var kits=[["DDR4-3200 CL16",3200,16],["DDR4-3200 CL18",3200,18],["DDR4-2666 CL16",2666,16],["DDR5-4800 CL40",4800,40],["DDR5-5600 CL36",5600,36],["DDR5-6000 CL30",6000,30],["DDR5-6000 CL36",6000,36],["DDR5-6400 CL32",6400,32]];
+  var a,b,la,lb;
+  do{a=pick(kits);b=pick(kits);la=Math.round(a[2]*2000/a[1]*10)/10;lb=Math.round(b[2]*2000/b[1]*10)/10;}while(a===b);
+  var okT=la===lb?"Tardan lo mismo":(la<lb?"El kit A":"El kit B");
+  var all=["El kit A","El kit B","Tardan lo mismo","No se puede saber"];
+  var ws=all.filter(function(x){return x!==okT;}).map(function(x){
+    if(x==="No se puede saber")return [x,"Sí se puede: CL × 2000 / velocidad."];
+    return [x,"Calcula CL × 2000 / velocidad: A = "+la+" ns y B = "+lb+" ns."];});
+  return build({id:uid("lat"),tema:"ram",ref:"sec-5-3",corto:"Latencia de "+a[0]+" frente a "+b[0],
+   q:"Kit A: "+a[0]+". Kit B: "+b[0]+". ¿Cuál tarda menos en responder?"},
+   okT,ws,"Latencia real = CL × 2000 ÷ velocidad. A = "+la+" ns; B = "+lb+" ns.");
+ },
+ function(){ /* PC4 -> DDR4 */
+  var v=pick([2400,2800,3000,3200,3600]); var bw=v*8;
+  var okT="DDR4-"+v;
+  var cand=[v*2,Math.round(bw/4),Math.round(bw/16),Math.round(bw/2),v+800,v-800].filter(function(x){return x!==v&&x>1000;});
+  var ws=[];shuf(cand).forEach(function(x){var t="DDR4-"+x;if(ws.length<3&&!ws.some(function(y){return y[0]===t;}))ws.push([t,"Hay que dividir entre 8: "+bw+" ÷ 8 = "+v+"."]);});
+  return build({id:uid("pc4"),tema:"ram",ref:"sec-5-4",corto:"Pasar PC4-"+bw+" a velocidad",
+   q:"Una etiqueta antigua dice PC4-"+bw+". ¿Qué velocidad es?"},
+   okT,ws,"El número tras PC4 es el ancho de banda en MB/s: dividido entre 8 da la velocidad ("+bw+" ÷ 8 = "+v+").");
+ },
+ function(){ /* capacidad máxima por módulo */
+  var c=pick([[2,64],[2,96],[4,128],[4,192],[4,256],[2,128]]); var s=c[0],t=c[1],m=t/s;
+  var okT=m+" GB";
+  var ws=[];[t,m*2,Math.round(m/2),t/ (s*2),m+16].forEach(function(x){var tx=x+" GB";if(tx!==okT&&ws.length<3&&!ws.some(function(y){return y[0]===tx;}))ws.push([tx,"La capacidad máxima es la de todas las ranuras juntas: "+t+" ÷ "+s+" = "+m+" GB."]);});
+  return build({id:uid("cap"),tema:"pla",ref:"sec-6-2",corto:"Capacidad máxima de una placa de "+s+" ranuras",
+   q:"La ficha de una placa dice «"+s+" x DIMM, Max. "+t+"GB». ¿Cuánta memoria como máximo puede tener cada módulo?"},
+   okT,ws,"«Max. "+t+"GB» es el total de todas las ranuras juntas: "+t+" ÷ "+s+" = "+m+" GB por módulo.");
+ },
+ function(){ /* zócalo de un modelo */
+  var M=[["Intel Core i5-14400F","LGA1700"],["Intel Core i7-13700K","LGA1700"],["Intel Core i9-12900K","LGA1700"],["Intel Core Ultra 7 265K","LGA1851"],["Intel Core Ultra 5 245K","LGA1851"],["Intel Core Ultra 9 285K","LGA1851"],["AMD Ryzen 5 7600X","AM5"],["AMD Ryzen 7 9700X","AM5"],["AMD Ryzen 5 8600G","AM5"],["AMD Ryzen 5 5600","AM4"],["AMD Ryzen 7 5800X3D","AM4"],["AMD Ryzen 5 5600G","AM4"]];
+  var m=pick(M);
+  var why={"LGA1700":"Es de Intel Core de 12.ª a 14.ª generación.","LGA1851":"Es de Intel Core Ultra 200S.","AM5":"Es de AMD Ryzen 7000, 8000 y 9000.","AM4":"Es de AMD Ryzen 5000 y anteriores."};
+  var ws=["LGA1700","LGA1851","AM5","AM4"].filter(function(x){return x!==m[1];}).map(function(x){return [x,why[x]];});
+  return build({id:uid("zoc"),tema:"zoc",ref:"sec-3-1",corto:"Zócalo del "+m[0],
+   q:"¿Qué zócalo usa un "+m[0]+"?"},m[1],ws,m[0]+" → "+m[1]+". "+why[m[1]]);
+ },
+ function(){ /* sufijo */
+  var S=[["Intel Core i7-14700K","Desbloqueado: admite overclocking"],["Intel Core i5-12400F","Sin gráficos integrados"],["Intel Core i9-14900KF","Desbloqueado y sin gráficos integrados"],["AMD Ryzen 9 7950X","Frecuencias más altas"],["AMD Ryzen 5 5600G","Gráficos integrados potentes"],["AMD Ryzen 7 7800X3D","Caché L3 extra apilada, muy bueno para juegos"],["Intel Core i7-13700H","Procesador de portátil"],["AMD Ryzen 7 7840U","Procesador de portátil"]];
+  var s=pick(S);
+  var ws=shuf(S.filter(function(x){return x[1]!==s[1];})).slice(0,3).map(function(x){return [x[1],"Eso corresponde a "+x[0].split(" ").pop()+", no a este sufijo."];});
+  return build({id:uid("suf"),tema:"fam",ref:"sec-2-3",corto:"Sufijo del "+s[0],
+   q:"¿Qué característica indica el sufijo del "+s[0]+"?"},s[1],ws,"Mira la letra final: "+s[0].split(" ").pop()+" = "+s[1].toLowerCase()+".");
+ },
+ function(){ /* etiqueta */
+  var cap=pick([4,8,16,32]); var t=pick(["PC4","PC5"]); var f=pick(["U","S"]);
+  var sp=t==="PC4"?pick([2666,3200]):pick([4800,5600]);
+  var lab=cap+"GB "+t+"-"+sp+(t==="PC4"?"AA":"B")+"-"+f+(t==="PC4"?"A2":"A0");
+  var T={"PC4":"DDR4","PC5":"DDR5"}, F={"U":"sobremesa (DIMM)","S":"portátil (SO-DIMM)"};
+  var oT=function(tt,ff){return T[tt]+", "+F[ff]+", "+cap+" GB, "+sp+" MT/s";};
+  var tt2=t==="PC4"?"PC5":"PC4", ff2=f==="U"?"S":"U";
+  var ws=[[oT(tt2,f),t+" indica "+T[t]+" (PC4 = DDR4, PC5 = DDR5)."],[oT(t,ff2),"La letra "+f+" indica "+F[f]+" (U = sobremesa, S = portátil)."],[oT(tt2,ff2),"Falla la tecnología y el formato: "+t+" = "+T[t]+" y "+f+" = "+F[f]+"."]];
+  return build({id:uid("eti"),tema:"ram",ref:"sec-5-4",corto:"Leer la etiqueta "+lab,
+   q:"Un módulo lleva la etiqueta «"+lab+"». ¿Qué es?"},oT(t,f),ws,t+" = "+T[t]+", "+sp+" = velocidad y "+f+" = "+F[f]+".");
+ }
+];
+
+function genQuestion(avoid){
+  for(var i=0;i<40;i++){
+    var q=pick(GENS)();
+    if(!avoid||!avoid.some(function(x){return x.q===q.q;}))return q;
+  }
+  return pick(GENS)();
+}
+
+(function(){
+"use strict";
+
+/* ---------- Utilidades ---------- */
+var $ = function(s,r){return (r||document).querySelector(s);};
+var $$ = function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
+var LET = ["A","B","C","D"];
+var NQ = 15;
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function reduced(){return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+function fmtDate(ts){
+  try{return new Date(ts).toLocaleString("es-ES",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});}
+  catch(e){return "";}
+}
+function secLabel(id){return REFS[id]||"Temario";}
+
+/* ---------- Guardado en el navegador ---------- */
+var KEY = "ud4-estudio-v2";
+var memCopy = null, canSave = true;
+function load(){
+  try{
+    var s = localStorage.getItem(KEY);
+    if(s){var d = JSON.parse(s); if(d && d.tests) return d;}
+  }catch(e){ canSave=false; }
+  return {tests:[], cur:null};
+}
+var DB = load();
+function save(){
+  memCopy = DB;
+  try{ localStorage.setItem(KEY, JSON.stringify(DB)); canSave = true; }
+  catch(e){ canSave = false; }
+}
+try{ localStorage.setItem(KEY+"-probe","1"); localStorage.removeItem(KEY+"-probe"); }catch(e){ canSave=false; }
+
+/* ---------- Vistas ---------- */
+var views = {repasar:$("#view-repasar"), test:$("#view-test"), hist:$("#view-hist")};
+var tabs = {repasar:$("#tab-repasar"), test:$("#tab-test"), hist:$("#tab-hist")};
+var backBtn = $("#back");
+var returnView = "test";
+
+function hideBack(){backBtn.hidden = true;}
+function showView(name, noRender){
+  Object.keys(views).forEach(function(k){
+    views[k].hidden = (k!==name);
+    tabs[k].setAttribute("aria-selected", k===name ? "true":"false");
+  });
+  if(name!=="repasar") hideBack();
+  if(name==="hist" && !noRender) renderHist();
+  window.scrollTo(0,0);
+}
+tabs.repasar.addEventListener("click",function(){hideBack();showView("repasar");});
+tabs.test.addEventListener("click",function(){showView("test");});
+tabs.hist.addEventListener("click",function(){showView("hist");});
+$("#go-test").addEventListener("click",function(){showView("test");});
+
+backBtn.addEventListener("click",function(){
+  showView(returnView, true);
+  if(returnView==="test"){
+    var h=$("#stage h1, #stage h2");
+    if(h){h.setAttribute("tabindex","-1");h.focus({preventScroll:true});}
+  }
+});
+
+function goToSection(id, label, view){
+  showView("repasar");
+  returnView = view || "test";
+  backBtn.textContent = "← " + label;
+  backBtn.hidden = false;
+  var el = document.getElementById(id);
+  if(!el) return;
+  setTimeout(function(){
+    el.scrollIntoView({behavior: reduced() ? "auto":"smooth", block:"start"});
+    el.classList.remove("flash");
+    void el.offsetWidth;
+    el.classList.add("flash");
+  },30);
+}
+
+/* Índice del temario */
+$$("[data-t]").forEach(function(a){
+  a.addEventListener("click",function(e){
+    e.preventDefault();
+    var el=document.getElementById(a.getAttribute("data-t"));
+    if(el) el.scrollIntoView({behavior: reduced() ? "auto":"smooth", block:"start"});
+    var d=a.closest("details"); if(d) d.open=false;
+  });
+});
+if("IntersectionObserver" in window){
+  var heads=$$(".doc section > h2, .doc h3[id]");
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(en.isIntersecting){
+        $$(".toc a.on").forEach(function(x){x.classList.remove("on");});
+        var a=$('.toc a[data-t="'+en.target.id+'"]');
+        if(a) a.classList.add("on");
+      }
+    });
+  },{rootMargin:"-100px 0px -70% 0px"});
+  heads.forEach(function(h){io.observe(h);});
+}
+
+/* ---------- Construir un test nuevo ---------- */
+function staticStats(){
+  var seen={}, fails={}, last={};
+  DB.tests.forEach(function(t){
+    t.items.forEach(function(it){
+      var id=it.q.id; if(id.charAt(0)==="g") return;
+      seen[id]=1; last[id]=t.n;
+      if(!it.correct) fails[id]=(fails[id]||0)+1;
+    });
+  });
+  return {seen:seen, fails:fails, last:last};
+}
+
+function balanced(pool, n){
+  var g={};
+  shuf(pool).forEach(function(q){(g[q.tema]=g[q.tema]||[]).push(q);});
+  var out=[];
+  while(out.length<n){
+    var ks=Object.keys(g).filter(function(k){return g[k].length;});
+    if(!ks.length) break;
+    ks=shuf(ks).sort(function(a,b){return g[b].length-g[a].length;});
+    for(var i=0;i<ks.length && out.length<n;i++) out.push(g[ks[i]].pop());
+  }
+  return out;
+}
+
+function buildTest(){
+  var st=staticStats();
+  var unseen=BANK.filter(function(q){return !st.seen[q.id];});
+  var chosen=[], nGen=0, nRep=0;
+  if(unseen.length>=NQ){
+    chosen=balanced(unseen,NQ).map(clone);
+  }else{
+    chosen=unseen.map(clone);
+    nGen=Math.min(8,NQ-chosen.length);
+    nRep=NQ-chosen.length-nGen;
+    var pool=BANK.filter(function(q){return st.seen[q.id];}).sort(function(a,b){
+      return ((st.fails[b.id]||0)-(st.fails[a.id]||0)) || (st.last[a.id]-st.last[b.id]) || (Math.random()-0.5);
+    });
+    pool.slice(0,nRep).forEach(function(q){var c=clone(q);c.rep=true;chosen.push(c);});
+    var gens=[];
+    for(var i=0;i<nGen;i++) gens.push(genQuestion(gens));
+    chosen=chosen.concat(gens);
+  }
+  chosen=chosen.map(function(q,i){return {q:q,i:i};}).sort(function(a,b){
+    return (TEMA_ORDER.indexOf(a.q.tema)-TEMA_ORDER.indexOf(b.q.tema)) || (a.i-b.i);
+  }).map(function(x){return x.q;});
+  return {qs:chosen, nuevas:unseen.length>=NQ?NQ:unseen.length, gen:nGen, rep:nRep};
+}
+
+function makeItems(qs){
+  return qs.map(function(q){return {q:q, perm:shuf([0,1,2,3]), chosen:null, correct:false};});
+}
+
+/* ---------- Pantallas del test ---------- */
+var stage=$("#stage");
+var S=null;   // test en curso: {n, items, idx, practice}
+
+function persistCur(){
+  if(S && !S.practice){DB.cur={n:S.n, items:S.items, idx:S.idx}; save();}
+}
+
+function pinsHTML(items, idx, big){
+  var h='<div class="pins'+(big?' big':'')+'" role="img" aria-label="Progreso del test">';
+  if(!items){for(var i=0;i<NQ;i++) h+='<span class="pin"></span>';}
+  else items.forEach(function(it,i){
+    var c="pin"; if(it.chosen!==null) c+=it.correct?" ok":" no"; else if(i===idx) c+=" cur";
+    h+='<span class="'+c+'"></span>';
+  });
+  return h+'</div>';
+}
+function saveNotice(){
+  return canSave ? "" : '<p class="notice">Este navegador no permite guardar tu progreso: se perderá al cerrar la página.</p>';
+}
+
+function renderStart(){
+  S=null;
+  var n=DB.tests.length+1;
+  if(DB.cur){
+    var c=DB.cur, answered=c.items.filter(function(i){return i.chosen!==null;}).length;
+    stage.innerHTML=
+      '<div class="start"><h1>Test '+c.n+' a medias</h1>'+
+      '<p class="lead">Llevas '+answered+' de '+c.items.length+' preguntas. Puedes seguir donde lo dejaste.</p>'+
+      pinsHTML(c.items,-1,true)+saveNotice()+
+      '<div class="actions"><button class="btn" id="resume">Continuar el test '+c.n+'</button>'+
+      '<button class="btn ghost" id="discard">Empezar otro desde cero</button></div></div>';
+    $("#resume").addEventListener("click",function(){
+      S={n:c.n, items:c.items, idx:c.idx, practice:false};
+      renderQuestion();
+    });
+    $("#discard").addEventListener("click",function(){DB.cur=null;save();startNewTest();});
+    return;
+  }
+  var st=staticStats();
+  var unseen=BANK.filter(function(q){return !st.seen[q.id];}).length;
+  var info = unseen>=NQ
+    ? NQ+' preguntas nuevas, que no has visto en ningún test anterior.'
+    : 'Ya has visto las '+BANK.length+' preguntas del banco. Este test mezcla preguntas nuevas con otros números y las que más has fallado.';
+  stage.innerHTML=
+    '<div class="start"><h1>Test '+n+'</h1>'+
+    '<p class="lead">'+info+' Si fallas, te lo explico en corto y te llevo al punto exacto del temario. Al terminar verás qué te falta por mejorar, y al acabar empieza otro distinto.</p>'+
+    pinsHTML(null,-1,true)+saveNotice()+
+    '<div class="actions"><button class="btn" id="start">Empezar el test '+n+'</button>'+
+    '<button class="btn ghost" id="to-rev">Antes, repasar el temario</button>'+
+    (DB.tests.length?'<button class="btn ghost" id="to-hist">Ver mis tests</button>':'')+'</div></div>';
+  $("#start").addEventListener("click",startNewTest);
+  $("#to-rev").addEventListener("click",function(){showView("repasar");});
+  var th=$("#to-hist"); if(th) th.addEventListener("click",function(){showView("hist");});
+}
+
+function startNewTest(){
+  var b=buildTest();
+  S={n:DB.tests.length+1, items:makeItems(b.qs), idx:0, practice:false};
+  persistCur();
+  renderQuestion();
+}
+function startPractice(list){
+  var qs=list.map(function(q){var c=clone(q);delete c.rep;return c;});
+  S={n:null, items:makeItems(qs), idx:0, practice:true};
+  renderQuestion();
+}
+
+function renderQuestion(){
+  var it=S.items[S.idx], q=it.q, n=S.items.length;
+  var head = S.practice ? "Práctica de falladas (no cuenta en tu historial)" : "Test "+S.n;
+  var h=pinsHTML(S.items,S.idx,false)+
+   '<p class="count">'+head+': pregunta '+(S.idx+1)+' de '+n+'</p>'+
+   '<span class="tema">'+esc(TEMAS[q.tema].n)+'</span>'+
+   (q.rep?' <span class="tema rep">Repaso: la fallaste o la viste hace tiempo</span>':'')+
+   '<h2 class="q" id="qh" tabindex="-1">'+esc(q.q)+'</h2>'+
+   '<div class="opts" role="group" aria-labelledby="qh">';
+  it.perm.forEach(function(oi,pos){
+    h+='<button class="opt" data-pos="'+pos+'"><span class="l">'+LET[pos]+'</span><span>'+esc(q.opts[oi].t)+'</span></button>';
+  });
+  h+='</div><div id="fb" aria-live="polite"></div>';
+  stage.innerHTML=h;
+  $$(".opt").forEach(function(b){b.addEventListener("click",function(){choose(+b.getAttribute("data-pos"));});});
+  window.scrollTo(0,0);
+  if(it.chosen!==null) reveal(false);
+  else $("#qh").focus({preventScroll:true});
+}
+
+function choose(pos){
+  var it=S.items[S.idx];
+  if(it.chosen!==null) return;
+  it.chosen=pos;
+  it.correct=!!it.q.opts[it.perm[pos]].ok;
+  persistCur();
+  reveal(true);
+}
+
+function reveal(scroll){
+  var it=S.items[S.idx], q=it.q, pos=it.chosen, o=q.opts[it.perm[pos]];
+  var okPos=it.perm.findIndex(function(i){return q.opts[i].ok;});
+  $$(".opt").forEach(function(b,p){
+    b.disabled=true;
+    if(p===okPos) b.classList.add("ok");
+    else if(p===pos) b.classList.add("no");
+    else b.classList.add("dim");
+  });
+  var pins=$$(".pin"); if(pins[S.idx]) pins[S.idx].className="pin "+(it.correct?"ok":"no");
+  var last=S.idx===S.items.length-1;
+  var nextTxt=last ? "Ver mis resultados" : "Siguiente pregunta";
+  var h;
+  if(it.correct){
+    h='<div class="fb good"><h3>Correcto</h3><p>'+esc(q.facil)+'</p>'+
+      '<div class="actions"><button class="btn" id="next">'+nextTxt+'</button>'+
+      '<button class="btn ghost small" id="ver">Ver en el temario: '+esc(secLabel(q.ref))+'</button></div></div>';
+  }else{
+    h='<div class="fb bad"><h3>Fallaste</h3>'+
+      '<p><strong>Tu respuesta:</strong> «'+esc(o.t)+'». '+esc(o.why)+'</p>'+
+      '<p><strong>La correcta:</strong> «'+esc(q.opts[it.perm[okPos]].t)+'».</p>'+
+      '<div class="easy"><p><strong>En corto:</strong> '+esc(q.facil)+'</p></div>'+
+      '<div class="actions"><button class="btn copper" id="ver">Ver en el temario: '+esc(secLabel(q.ref))+'</button>'+
+      '<button class="btn" id="next">'+nextTxt+'</button></div></div>';
+  }
+  $("#fb").innerHTML=h;
+  $("#ver").addEventListener("click",function(){
+    goToSection(q.ref,"Volver a la pregunta "+(S.idx+1),"test");
+  });
+  $("#next").addEventListener("click",function(){
+    S.idx++;
+    if(S.idx>=S.items.length) finish(); else {persistCur();renderQuestion();}
+  });
+  if(scroll) $("#fb").scrollIntoView({behavior: reduced() ? "auto":"smooth", block:"nearest"});
+}
+
+function finish(){
+  var score=S.items.filter(function(i){return i.correct;}).length;
+  if(S.practice){ renderResults({n:null, items:S.items, score:score}, true); return; }
+  var t={n:S.n, ts:Date.now(), items:S.items, score:score};
+  DB.tests.push(t); DB.cur=null; save();
+  renderResults(t,false);
+}
+
+function tallyByTema(items){
+  var by={};
+  items.forEach(function(it){
+    var t=it.q.tema; by[t]=by[t]||{ok:0,no:0,fails:[]};
+    if(it.correct) by[t].ok++; else {by[t].no++; by[t].fails.push(it);}
+  });
+  return by;
+}
+
+function failedDetail(it){
+  var q=it.q, o=q.opts[it.perm[it.chosen]], okT=q.opts.filter(function(x){return x.ok;})[0].t;
+  return '<details><summary>'+esc(q.corto)+'</summary><div class="fbi">'+
+    '<p><strong>Pregunta:</strong> '+esc(q.q)+'</p>'+
+    '<p><strong>Marcaste:</strong> «'+esc(o.t)+'». '+esc(o.why)+'</p>'+
+    '<p><strong>Correcta:</strong> «'+esc(okT)+'».</p>'+
+    '<div class="easy"><p><strong>En corto:</strong> '+esc(q.facil)+'</p></div>'+
+    '<p><button class="btn ghost small" data-ref="'+esc(q.ref)+'">Ver en el temario: '+esc(secLabel(q.ref))+'</button></p></div></details>';
+}
+
+function renderResults(t, practice){
+  var items=t.items, n=items.length, ok=t.score;
+  var fails=items.filter(function(i){return !i.correct;});
+  var msg = ok===n ? "Perfecto. En este test no te ha quedado nada por mejorar."
+          : ok>=n*0.8 ? "Muy bien. Solo te quedan detalles por pulir."
+          : ok>=n*0.5 ? "Vas por buen camino, pero hay partes que conviene repasar."
+          : "Todavía queda bastante por repasar. Empieza por lo que sale abajo.";
+  var by=tallyByTema(items);
+
+  var h='<div class="res"><p class="count" id="rh" tabindex="-1">'+(practice?'Resultado de la práctica':'Resultado del test '+t.n)+'</p>'+
+    '<div class="score"><b>'+ok+'</b><span>de '+n+' aciertos</span></div>'+
+    '<p>'+msg+'</p>'+pinsHTML(items,-1,false)+
+    '<h2>Cómo vas en cada tema</h2><div class="bars">';
+  TEMA_ORDER.forEach(function(k){
+    var d=by[k]; if(!d) return; var tot=d.ok+d.no;
+    h+='<div class="bar"><span>'+esc(TEMAS[k].n)+'</span><div class="track" aria-hidden="true"><i style="width:'+(d.ok/tot*100)+'%"></i><i class="f" style="width:'+(d.no/tot*100)+'%"></i></div><em>'+d.ok+'/'+tot+'</em></div>';
+  });
+  h+='</div><h2>Lo que te falta por mejorar</h2>';
+  var tf=Object.keys(by).filter(function(k){return by[k].no>0;}).sort(function(a,b){return by[b].no-by[a].no;});
+  if(!tf.length){
+    h+='<div class="todo-ok"><strong>Nada pendiente.</strong> Has acertado todas.'+(practice?'':' El siguiente test trae preguntas distintas.')+'</div>';
+  }else{
+    tf.forEach(function(k){
+      var d=by[k];
+      h+='<div class="mejora"><h3>'+esc(TEMAS[k].n)+'</h3><p class="c">Fallaste '+d.no+' de '+(d.ok+d.no)+'. '+esc(TEMAS[k].c)+'</p><ul>';
+      d.fails.forEach(function(it){
+        h+='<li><span>'+esc(it.q.corto)+'</span><button class="btn ghost small" data-ref="'+esc(it.q.ref)+'">Ver en el temario: '+esc(secLabel(it.q.ref))+'</button></li>';
+      });
+      h+='</ul></div>';
+    });
+    h+='<h2>Las que fallaste, explicadas</h2>'+fails.map(failedDetail).join("");
+  }
+  h+='<div class="actions" style="margin-top:26px">';
+  if(!practice) h+='<button class="btn" id="next-test">Hacer el test '+(DB.tests.length+1)+' (preguntas distintas)</button>';
+  if(fails.length) h+='<button class="btn '+(practice?'':'copper')+'" id="prac">Practicar las '+fails.length+' falladas</button>';
+  if(practice) h+='<button class="btn" id="back-test">Volver al test '+(DB.tests.length+1)+'</button>';
+  h+='<button class="btn ghost" id="to-hist2">Ver mis tests y mi progreso</button></div></div>';
+  stage.innerHTML=h;
+
+  $$("[data-ref]",stage).forEach(function(b){
+    b.addEventListener("click",function(){goToSection(b.getAttribute("data-ref"),"Volver a mis resultados","test");});
+  });
+  var nt=$("#next-test"); if(nt) nt.addEventListener("click",startNewTest);
+  var pr=$("#prac"); if(pr) pr.addEventListener("click",function(){startPractice(fails.map(function(i){return i.q;}));});
+  var bt=$("#back-test"); if(bt) bt.addEventListener("click",renderStart);
+  $("#to-hist2").addEventListener("click",function(){showView("hist");});
+  window.scrollTo(0,0);
+  $("#rh").focus({preventScroll:true});
+}
+
+/* ---------- Mis tests y progreso ---------- */
+var histBox=$("#hist");
+var confirmReset=false;
+
+function renderHist(){
+  var T=DB.tests;
+  if(!T.length){
+    histBox.innerHTML='<div class="card"><h1 class="hh">Mis tests</h1>'+
+      '<p class="lead">Aún no has terminado ningún test. Cuando acabes el primero verás aquí tu nota, tu evolución y qué temas te cuestan más.</p>'+saveNotice()+
+      '<div class="actions"><button class="btn" id="h-go">Hacer el test 1</button></div></div>';
+    $("#h-go").addEventListener("click",function(){showView("test");});
+    return;
+  }
+  var total=0, okAll=0, best=0, by={};
+  T.forEach(function(t){
+    best=Math.max(best,t.score);
+    t.items.forEach(function(it){
+      total++; if(it.correct) okAll++;
+      var k=it.q.tema; by[k]=by[k]||{ok:0,tot:0}; by[k].tot++; if(it.correct) by[k].ok++;
+    });
+  });
+  var st=staticStats(), seenN=Object.keys(st.seen).length;
+  var avg=Math.round(okAll/total*100);
+
+  var h='<div class="card wide"><h1 class="hh">Mis tests</h1>'+saveNotice()+
+    '<div class="stats">'+
+    '<div class="stat"><b>'+T.length+'</b><span>tests hechos</span></div>'+
+    '<div class="stat"><b>'+avg+'%</b><span>de aciertos en total</span></div>'+
+    '<div class="stat"><b>'+best+'/'+NQ+'</b><span>mejor nota</span></div>'+
+    '<div class="stat"><b>'+seenN+'/'+BANK.length+'</b><span>preguntas del banco vistas</span></div>'+
+    '</div>';
+
+  /* evolución */
+  var last=T.slice(-12);
+  h+='<h2>Tu evolución</h2>';
+  var lbl=last.map(function(t){return "Test "+t.n+": "+t.score;}).join(", ");
+  h+='<div class="evo" role="img" aria-label="Aciertos por test. '+esc(lbl)+'">';
+  last.forEach(function(t){
+    var cls=t.score>=12?"hi":(t.score>=8?"mid":"lo");
+    h+='<div class="col"><span class="v">'+t.score+'</span><i class="'+cls+'" style="height:'+Math.max(4,Math.round(t.score/NQ*100))+'px"></i><span class="l">T'+t.n+'</span></div>';
+  });
+  h+='</div>';
+  if(T.length>=2){
+    var a=T[T.length-1].score, b=T[T.length-2].score, d=a-b;
+    h+='<p class="trend">Último test: '+a+' de '+NQ+'. '+(d>0?'Subes '+d+(d===1?' acierto':' aciertos')+' respecto al anterior.':d<0?'Bajas '+(-d)+(d===-1?' acierto':' aciertos')+' respecto al anterior.':'Igual que el anterior.')+'</p>';
+  }else{
+    h+='<p class="trend">Cuando hagas otro test podrás comparar.</p>';
+  }
+
+  /* dominio por tema */
+  var weakK=null, weakP=101;
+  TEMA_ORDER.forEach(function(k){
+    var d=by[k]; if(!d||d.tot<3) return;
+    var p=d.ok/d.tot*100; if(p<weakP){weakP=p;weakK=k;}
+  });
+  h+='<h2>Cómo dominas cada tema</h2><div class="bars">';
+  TEMA_ORDER.forEach(function(k){
+    var d=by[k]; if(!d) return;
+    var p=Math.round(d.ok/d.tot*100);
+    h+='<div class="bar'+(k===weakK&&weakP<100?' weak':'')+'"><span>'+esc(TEMAS[k].n)+'</span><div class="track" aria-hidden="true"><i style="width:'+p+'%"></i><i class="f" style="width:'+(100-p)+'%"></i></div><em>'+p+'%</em></div>';
+  });
+  h+='</div>';
+  if(weakK && weakP<100){
+    h+='<div class="mejora" style="margin-top:14px"><h3>Lo que más te cuesta: '+esc(TEMAS[weakK].n)+'</h3><p class="c">'+esc(TEMAS[weakK].c)+'</p>'+
+       '<button class="btn copper small" data-ref="'+esc(TEMAS[weakK].ref)+'">Repasar este tema en el temario</button></div>';
+  }
+
+  /* lista de tests */
+  h+='<h2>Todos mis tests</h2>';
+  T.slice().reverse().forEach(function(t){
+    var tf=t.items.filter(function(i){return !i.correct;});
+    var tb=tallyByTema(t.items);
+    h+='<details class="tcard"><summary><span class="tn">Test '+t.n+'</span><span class="ts">'+t.score+'/'+NQ+'</span><span class="td">'+fmtDate(t.ts)+'</span></summary><div class="fbi">'+
+       pinsHTML(t.items,-1,false);
+    h+='<ul class="tt">';
+    TEMA_ORDER.forEach(function(k){var d=tb[k]; if(d) h+='<li><span>'+esc(TEMAS[k].n)+'</span><b>'+d.ok+'/'+(d.ok+d.no)+'</b></li>';});
+    h+='</ul>';
+    if(tf.length){
+      h+='<h3 class="sub">Fallaste '+tf.length+'</h3>'+tf.map(failedDetail).join("");
+      h+='<p><button class="btn copper small" data-prac="'+t.n+'">Practicar estas '+tf.length+' falladas</button></p>';
+    }else{
+      h+='<p class="todo-ok">Sin fallos en este test.</p>';
+    }
+    h+='</div></details>';
+  });
+
+  /* borrar */
+  h+='<div class="reset">'+
+     (confirmReset
+       ? '<p><strong>¿Seguro?</strong> Se borran todos tus tests y tu progreso.</p><div class="actions"><button class="btn small" id="reset-yes" style="background:var(--bad);border-color:var(--bad)">Sí, borrar todo</button><button class="btn ghost small" id="reset-no">Cancelar</button></div>'
+       : '<button class="btn ghost small" id="reset-ask">Borrar mi historial</button>')+
+     '</div>'+
+     '<div class="actions" style="margin-top:18px"><button class="btn" id="h-go">Hacer el test '+(T.length+1)+'</button></div></div>';
+  histBox.innerHTML=h;
+
+  $$("[data-ref]",histBox).forEach(function(b){
+    b.addEventListener("click",function(){goToSection(b.getAttribute("data-ref"),"Volver a mis tests","hist");});
+  });
+  $$("[data-prac]",histBox).forEach(function(b){
+    b.addEventListener("click",function(){
+      var num=+b.getAttribute("data-prac");
+      var t=DB.tests.filter(function(x){return x.n===num;})[0];
+      if(!t) return;
+      startPractice(t.items.filter(function(i){return !i.correct;}).map(function(i){return i.q;}));
+      showView("test");
+    });
+  });
+  $("#h-go").addEventListener("click",function(){
+    showView("test");
+    if(!S) renderStart();
+  });
+  var ra=$("#reset-ask"); if(ra) ra.addEventListener("click",function(){confirmReset=true;renderHist();});
+  var rn=$("#reset-no"); if(rn) rn.addEventListener("click",function(){confirmReset=false;renderHist();});
+  var ry=$("#reset-yes"); if(ry) ry.addEventListener("click",function(){
+    DB={tests:[],cur:null}; save(); confirmReset=false; S=null; renderStart(); renderHist();
+  });
+}
+
+renderStart();
+})();
+
+</script>
+</body>
+</html>
